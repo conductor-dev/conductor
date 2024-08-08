@@ -1,0 +1,8 @@
+[package]
+name = "conductor-sim"
+version = { workspace = true }
+edition = { workspace = true }
+readme = { workspace = true }
+
+[dependencies]
+conductor = { workspace = true }
