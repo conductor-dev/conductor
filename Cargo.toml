@@ -1,0 +1,13 @@
+[workspace]
+members = ["crates/*"]
+default-members = ["crates/orchestrator-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+
+[workspace.dependencies]
+orchestrator = { path = "crates/orchestrator", version = "0.1.0" }
+orchestrator-cli = { path = "crates/orchestrator-cli", version = "0.1.0" }

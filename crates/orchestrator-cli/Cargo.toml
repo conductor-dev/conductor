@@ -1,0 +1,8 @@
+[package]
+name = "orchestrator-cli"
+version = { workspace = true }
+edition = { workspace = true }
+readme = { workspace = true }
+
+[dependencies]
+orchestrator = { workspace = true }
