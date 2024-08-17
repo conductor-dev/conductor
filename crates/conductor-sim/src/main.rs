@@ -1,5 +1,15 @@
-use conductor::add;
+mod args;
+mod error;
+mod voltmeter;
 
-fn main() {
-    println!("2 + 2 = {}", add(2, 2));
+use args::Args;
+use clap::Parser;
+use error::ConductorSimResult;
+
+fn main() -> ConductorSimResult<()> {
+    let args = Args::parse();
+
+    match args.command {
+        args::Command::PeakVoltmeter(cmd) => voltmeter::voltmeter(cmd),
+    }
 }

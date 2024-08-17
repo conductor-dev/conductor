@@ -3,11 +3,11 @@
 run:
 	cargo run
 
-run-sim:
-	cargo run --package conductor-sim
-
 build:
 	cargo build
+
+build-sim:
+	cargo build --package conductor-sim
 
 clean:
 	rm -rf target
