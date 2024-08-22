@@ -1,13 +1,19 @@
-use std::net::UdpSocket;
+use conductor::prelude::*;
 
-fn main() -> std::io::Result<()> {
-    let socket = UdpSocket::bind("127.0.0.1:8080")?;
+fn main() {
+    let socket = UdpSocket::new("127.0.0.1:8080".parse().unwrap());
 
-    loop {
-        let mut buffer = [0; 4]; // 4 bytes for f32
+    let output = PrintOutput::new();
 
-        socket.recv_from(&mut buffer)?;
+    let pass = Pass::new();
 
-        println!("received: {}", f32::from_ne_bytes(buffer))
-    }
+    let pipeline_one = socket.send_to(&pass);
+
+    let pipeline_two = pipeline_one.clone().send_to(&output);
+
+    let pipeline_three = pipeline_one.send_to(&output);
+
+    let orchestrator = Orchestrator::new([pipeline_two, pipeline_three]);
+
+    orchestrator.run()
 }
