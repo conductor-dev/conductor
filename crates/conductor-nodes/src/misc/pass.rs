@@ -26,3 +26,9 @@ impl<T: Display> Node for Pass<T> {
         }
     }
 }
+
+impl<T: Display> Default for Pass<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}

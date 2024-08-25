@@ -28,8 +28,7 @@ impl<T: Clone + DeserializeFromBytes> Node for UdpReceiver<T> {
         loop {
             // TODO: this is not ideal
             let len = self.socket.peek(&mut [0; 100]).unwrap();
-            let mut buffer = Vec::new();
-            buffer.resize(len, 0);
+            let mut buffer = vec![0; len];
 
             self.socket.recv_from(&mut buffer).unwrap();
             self.output.send(&T::deserialize_from_bytes(&buffer));

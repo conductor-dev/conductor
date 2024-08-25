@@ -5,13 +5,17 @@ use nodes::Node;
 use std::thread;
 
 pub fn run(nodes: Vec<Box<dyn Node + Send>>) {
-    // pub fn run<const N: usize>(nodes: [Box<dyn Node + Send>; N]) {
+    let mut handles = vec![];
+
     for node in nodes {
-        thread::spawn(move || node.run());
+        let handle = thread::spawn(move || node.run());
+
+        handles.push(handle);
     }
 
-    loop {}
-    // TODO: join threads?
+    for handle in handles {
+        handle.join().unwrap();
+    }
 }
 
 // TODO

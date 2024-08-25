@@ -13,6 +13,12 @@ impl<T> SinkPort<T> {
     }
 }
 
+impl Default for SinkPort<f32> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct SourcePort<T: Clone> {
     tx: Vec<Sender<T>>,
 }
@@ -30,6 +36,12 @@ impl<T: Clone> SourcePort<T> {
         for tx in &self.tx {
             tx.send(value.clone()).unwrap();
         }
+    }
+}
+
+impl<T: Clone> Default for SourcePort<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -13,6 +13,12 @@ impl<T: Display> ConsolePrinter<T> {
     }
 }
 
+impl Default for ConsolePrinter<f32> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: Display> Node for ConsolePrinter<T> {
     // TODO: should be a trait method
     // TODO: does not need to be public
