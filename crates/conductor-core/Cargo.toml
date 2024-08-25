@@ -1,9 +1,7 @@
 [package]
-name = "conductor"
+name = "conductor-core"
 version = { workspace = true }
 edition = { workspace = true }
 readme = { workspace = true }
 
 [dependencies]
-conductor-core = { workspace = true }
-conductor-nodes = { workspace = true }

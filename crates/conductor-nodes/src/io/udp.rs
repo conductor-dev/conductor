@@ -1,16 +1,16 @@
-use crate::nodes::{Node, SourcePort};
+use conductor_core::nodes::{Node, SourcePort};
 use std::net::UdpSocket;
 
 pub trait DeserializeFromBytes {
     fn deserialize_from_bytes(bytes: &[u8]) -> Self;
 }
 
-pub struct UdpReceiverNode<T: Clone + DeserializeFromBytes> {
+pub struct UdpReceiver<T: Clone + DeserializeFromBytes> {
     socket: UdpSocket,
     pub output: SourcePort<T>,
 }
 
-impl<T: Clone + DeserializeFromBytes> UdpReceiverNode<T> {
+impl<T: Clone + DeserializeFromBytes> UdpReceiver<T> {
     pub fn new(addr: &str) -> Self {
         let socket = UdpSocket::bind(addr).unwrap();
 
@@ -21,7 +21,7 @@ impl<T: Clone + DeserializeFromBytes> UdpReceiverNode<T> {
     }
 }
 
-impl<T: Clone + DeserializeFromBytes> Node for UdpReceiverNode<T> {
+impl<T: Clone + DeserializeFromBytes> Node for UdpReceiver<T> {
     // TODO: should be a trait method
     // TODO: does not need to be public
     fn run(&self) {

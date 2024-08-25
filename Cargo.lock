@@ -100,12 +100,27 @@ checksum = "d3fd119d74b830634cea2a0f58bbd0d54540518a14397557951e79340abc28c0"
 [[package]]
 name = "conductor"
 version = "0.1.0"
+dependencies = [
+ "conductor-core",
+ "conductor-nodes",
+]
 
 [[package]]
 name = "conductor-cli"
 version = "0.1.0"
 dependencies = [
  "conductor",
+]
+
+[[package]]
+name = "conductor-core"
+version = "0.1.0"
+
+[[package]]
+name = "conductor-nodes"
+version = "0.1.0"
+dependencies = [
+ "conductor-core",
 ]
 
 [[package]]

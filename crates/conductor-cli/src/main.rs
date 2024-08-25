@@ -1,22 +1,13 @@
-use conductor::nodes::{
-    print::ConsolePrinterNode,
-    udp::{DeserializeFromBytes, UdpReceiverNode},
-};
+use conductor::prelude::*;
 use std::fmt::Display;
 
-// TODO: Group/Pipeline/Node ?
-// TODO: PassNode ?
-// TODO: cli.exe graph
-// TODO: push to algi-..
-
 fn main() -> () {
-    let mut udp_receiver = UdpReceiverNode::<MyPacket>::new("127.0.0.1:8080");
-    let console_printer = ConsolePrinterNode::new();
+    let mut udp_receiver = UdpReceiver::<MyPacket>::new("127.0.0.1:8080");
+    let console_printer = ConsolePrinter::new();
 
     udp_receiver.output.connect(&console_printer.input);
 
-    conductor::run_internal(vec![Box::new(udp_receiver), Box::new(console_printer)]);
-    // conductor::run![udp_receiver, console_printer];
+    conductor::core::run(vec![Box::new(udp_receiver), Box::new(console_printer)]);
 }
 
 #[derive(Clone, Copy)]
