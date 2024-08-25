@@ -17,8 +17,6 @@ impl<T: Display> Pass<T> {
 }
 
 impl<T: Display> Node for Pass<T> {
-    // TODO: should be a trait method
-    // TODO: does not need to be public
     fn run(&self) {
         loop {
             let value = self.input.rx.recv().unwrap();

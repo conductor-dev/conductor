@@ -22,8 +22,6 @@ impl<T: Clone + DeserializeFromBytes> UdpReceiver<T> {
 }
 
 impl<T: Clone + DeserializeFromBytes> Node for UdpReceiver<T> {
-    // TODO: should be a trait method
-    // TODO: does not need to be public
     fn run(&self) {
         loop {
             // TODO: this is not ideal

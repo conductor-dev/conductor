@@ -20,8 +20,6 @@ impl Default for ConsolePrinter<f32> {
 }
 
 impl<T: Display> Node for ConsolePrinter<T> {
-    // TODO: should be a trait method
-    // TODO: does not need to be public
     fn run(&self) {
         loop {
             println!("{}", self.input.rx.recv().unwrap());
