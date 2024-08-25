@@ -1,14 +1,4 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+pub mod prelude;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works<'a>() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use conductor_core as core;
+pub use conductor_nodes as nodes;
