@@ -1,14 +1,23 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use nodes::Node;
+use std::thread;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod nodes;
 
-    #[test]
-    fn it_works<'a>() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+pub fn run_internal(nodes: Vec<Box<dyn Node + Send>>) {
+    for node in nodes {
+        thread::spawn(move || node.run());
     }
+
+    loop {}
+
+    // TODO: join threads?
 }
+
+#[macro_export]
+macro_rules! run {
+    ($($node:expr),*) => {
+        run_internal(vec![$(Box::new($node)),*]);
+    };
+}
+
+// pub(crate) use run;
