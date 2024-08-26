@@ -13,13 +13,13 @@ fn main() {
 #[derive(Clone, Copy)]
 struct MyPacket(f32);
 
-impl DeserializeFromBytes for MyPacket {
-    fn deserialize_from_bytes(bytes: &[u8]) -> Self {
-        let mut buffer = [0; size_of::<f32>()];
-        buffer.copy_from_slice(&bytes[..size_of::<f32>()]);
-        let data = f32::from_ne_bytes(buffer);
+impl UdpDeserializer for MyPacket {
+    fn max_packet_size() -> usize {
+        size_of::<f32>()
+    }
 
-        Self(data)
+    fn deserialize_packet(bytes: &[u8]) -> Self {
+        Self(f32::from_ne_bytes(bytes.try_into().unwrap()))
     }
 }
 
