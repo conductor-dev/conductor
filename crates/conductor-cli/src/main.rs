@@ -7,7 +7,7 @@ fn main() {
 
     udp_receiver.output.connect(&console_printer.input);
 
-    conductor::core::run(vec![Box::new(udp_receiver), Box::new(console_printer)]);
+    conductor::core::run![udp_receiver, console_printer];
 }
 
 #[derive(Clone, Copy)]
