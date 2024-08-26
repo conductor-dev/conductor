@@ -1,16 +1,15 @@
-use crate::runner::Runner;
 use std::{
     cell::RefCell,
     rc::Rc,
     sync::mpsc::{channel, Receiver, RecvError, Sender},
 };
 
-pub struct SinkPort<T> {
+pub struct InputPort<T> {
     tx: Sender<T>,
     rx: Receiver<T>,
 }
 
-impl<T> SinkPort<T> {
+impl<T> InputPort<T> {
     pub fn new() -> Self {
         let (tx, rx) = channel::<T>();
         Self { tx, rx }
@@ -21,22 +20,22 @@ impl<T> SinkPort<T> {
     }
 }
 
-impl<T> Default for SinkPort<T> {
+impl<T> Default for InputPort<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub struct SinkPortCell<T>(Rc<RefCell<SinkPort<T>>>);
+pub struct InputPortCell<T>(Rc<RefCell<InputPort<T>>>);
 
-impl<T> Clone for SinkPortCell<T> {
+impl<T> Clone for InputPortCell<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl<T> From<SinkPortCell<T>> for SinkPort<T> {
-    fn from(cell: SinkPortCell<T>) -> Self {
+impl<T> From<InputPortCell<T>> for InputPort<T> {
+    fn from(cell: InputPortCell<T>) -> Self {
         match Rc::try_unwrap(cell.0) {
             Ok(inner) => inner.into_inner(),
             Err(_) => unreachable!(),
@@ -44,9 +43,9 @@ impl<T> From<SinkPortCell<T>> for SinkPort<T> {
     }
 }
 
-impl<T> SinkPortCell<T> {
+impl<T> InputPortCell<T> {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(SinkPort::new())))
+        Self(Rc::new(RefCell::new(InputPort::new())))
     }
 
     pub fn recv(&self) -> Result<T, RecvError> {
@@ -54,28 +53,22 @@ impl<T> SinkPortCell<T> {
     }
 }
 
-impl<T> Default for SinkPortCell<T> {
+impl<T> Default for InputPortCell<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub struct SourcePort<T: Clone> {
+pub struct OutputPort<T: Clone> {
     tx: Vec<Sender<T>>,
 }
 
-impl<T: Clone> Clone for SourcePortCell<T> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
-    }
-}
-
-impl<T: Clone> SourcePort<T> {
+impl<T: Clone> OutputPort<T> {
     pub fn new() -> Self {
         Self { tx: Vec::new() }
     }
 
-    pub fn connect(&mut self, input: &SinkPortCell<T>) {
+    pub fn connect(&mut self, input: &InputPortCell<T>) {
         self.tx.push(input.0.borrow().tx.clone());
     }
 
@@ -86,16 +79,22 @@ impl<T: Clone> SourcePort<T> {
     }
 }
 
-impl<T: Clone> Default for SourcePort<T> {
+impl<T: Clone> Default for OutputPort<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub struct SourcePortCell<T: Clone>(Rc<RefCell<SourcePort<T>>>);
+pub struct OutputPortCell<T: Clone>(Rc<RefCell<OutputPort<T>>>);
 
-impl<T: Clone> From<SourcePortCell<T>> for SourcePort<T> {
-    fn from(cell: SourcePortCell<T>) -> Self {
+impl<T: Clone> Clone for OutputPortCell<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<T: Clone> From<OutputPortCell<T>> for OutputPort<T> {
+    fn from(cell: OutputPortCell<T>) -> Self {
         match Rc::try_unwrap(cell.0) {
             Ok(inner) => inner.into_inner(),
             Err(_) => unreachable!(),
@@ -103,12 +102,12 @@ impl<T: Clone> From<SourcePortCell<T>> for SourcePort<T> {
     }
 }
 
-impl<T: Clone> SourcePortCell<T> {
+impl<T: Clone> OutputPortCell<T> {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(SourcePort::new())))
+        Self(Rc::new(RefCell::new(OutputPort::new())))
     }
 
-    pub fn connect(&self, input: &SinkPortCell<T>) {
+    pub fn connect(&self, input: &InputPortCell<T>) {
         self.0.borrow_mut().connect(input);
     }
 
@@ -117,12 +116,8 @@ impl<T: Clone> SourcePortCell<T> {
     }
 }
 
-impl<T: Clone> Default for SourcePortCell<T> {
+impl<T: Clone> Default for OutputPortCell<T> {
     fn default() -> Self {
         Self::new()
     }
-}
-
-pub trait Node {
-    fn create_runner(self: Box<Self>) -> Box<dyn Runner + Send>;
 }

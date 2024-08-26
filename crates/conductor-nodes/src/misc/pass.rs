@@ -1,15 +1,15 @@
 use conductor_core::{
-    node::{Node, SinkPort, SinkPortCell, SourcePort, SourcePortCell},
-    runner::Runner,
+    ports::{InputPort, InputPortCell, OutputPort, OutputPortCell},
+    Node, Runner,
 };
 
 pub struct PassRunner<T: Clone> {
-    pub input: SinkPort<T>,
-    pub output: SourcePort<T>,
+    input: InputPort<T>,
+    output: OutputPort<T>,
 }
 
 impl<T: Clone> Runner for PassRunner<T> {
-    fn run(&self) {
+    fn run(self: Box<Self>) {
         loop {
             let value = self.input.recv().unwrap();
             self.output.send(&value);
@@ -18,15 +18,15 @@ impl<T: Clone> Runner for PassRunner<T> {
 }
 
 pub struct Pass<T: Clone> {
-    pub input: SinkPortCell<T>,
-    pub output: SourcePortCell<T>,
+    pub input: InputPortCell<T>,
+    pub output: OutputPortCell<T>,
 }
 
 impl<T: Clone> Pass<T> {
     pub fn new() -> Self {
         Self {
-            input: SinkPortCell::<T>::new(),
-            output: SourcePortCell::<T>::new(),
+            input: InputPortCell::<T>::new(),
+            output: OutputPortCell::<T>::new(),
         }
     }
 }
