@@ -3,5 +3,5 @@ mod udp;
 
 pub use self::{
     print::ConsolePrinter,
-    udp::{DeserializeFromBytes, UdpReceiver},
+    udp::{UdpDeserializer, UdpReceiver},
 };

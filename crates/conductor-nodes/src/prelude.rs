@@ -1,4 +1,4 @@
 pub use crate::{
-    io::{ConsolePrinter, DeserializeFromBytes, UdpReceiver},
+    io::{ConsolePrinter, UdpDeserializer, UdpReceiver},
     misc::Pass,
 };
