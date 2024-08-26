@@ -4,7 +4,7 @@ pub mod prelude;
 use nodes::Node;
 use std::thread;
 
-pub fn run(nodes: Vec<Box<dyn Node + Send>>) {
+pub fn run_internal(nodes: Vec<Box<dyn Node + Send>>) {
     let mut handles = vec![];
 
     for node in nodes {
@@ -18,12 +18,9 @@ pub fn run(nodes: Vec<Box<dyn Node + Send>>) {
     }
 }
 
-// TODO
-// #[macro_export]
-// macro_rules! run {
-//     ($($node:expr),*) => {
-//         run_internal(vec![$(Box::new($node)),*]);
-//     };
-// }
-
-// pub(crate) use run;
+#[macro_export]
+macro_rules! run {
+    ($($node:expr),*) => {
+        conductor::core::run_internal(vec![$(Box::new($node)),*]);
+    };
+}
