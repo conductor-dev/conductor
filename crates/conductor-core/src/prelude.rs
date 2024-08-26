@@ -1,4 +1,5 @@
 pub use crate::{
-    node::{Node, SinkPort, SourcePort},
-    runner::Runner,
+    pipeline,
+    ports::{InputPort, InputPortCell, OutputPort, OutputPortCell},
+    Node, Runner,
 };

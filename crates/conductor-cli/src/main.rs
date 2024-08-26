@@ -5,9 +5,11 @@ fn main() {
     let udp_receiver = UdpReceiver::<MyPacket>::new("127.0.0.1:8080");
     let console_printer = ConsolePrinter::new();
 
-    udp_receiver.output.connect(&console_printer.input);
+    let pipeline = pipeline!([udp_receiver], (), (udp_receiver.output));
 
-    conductor::core::run![udp_receiver, console_printer];
+    pipeline.output.connect(&console_printer.input);
+
+    pipeline![pipeline, console_printer].run();
 }
 
 #[derive(Clone, Copy)]

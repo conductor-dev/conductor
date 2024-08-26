@@ -1,6 +1,6 @@
 use conductor_core::{
-    node::{Node, SourcePort, SourcePortCell},
-    runner::Runner,
+    ports::{OutputPort, OutputPortCell},
+    Node, Runner,
 };
 use std::net::UdpSocket;
 
@@ -11,11 +11,11 @@ pub trait UdpDeserializer {
 
 pub struct UdpReceiverRunner<T: Clone + UdpDeserializer> {
     socket: UdpSocket,
-    pub output: SourcePort<T>,
+    output: OutputPort<T>,
 }
 
 impl<T: Clone + UdpDeserializer> Runner for UdpReceiverRunner<T> {
-    fn run(&self) {
+    fn run(self: Box<Self>) {
         loop {
             let mut buffer = vec![0; T::max_packet_size()];
             let size = self.socket.recv(&mut buffer).unwrap();
@@ -28,14 +28,14 @@ impl<T: Clone + UdpDeserializer> Runner for UdpReceiverRunner<T> {
 
 pub struct UdpReceiver<'a, T: Clone + UdpDeserializer> {
     addr: &'a str,
-    pub output: SourcePortCell<T>,
+    pub output: OutputPortCell<T>,
 }
 
 impl<'a, T: Clone + UdpDeserializer> UdpReceiver<'a, T> {
     pub fn new(addr: &'a str) -> Self {
         Self {
             addr,
-            output: SourcePortCell::<T>::new(),
+            output: OutputPortCell::<T>::new(),
         }
     }
 }

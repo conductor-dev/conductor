@@ -1,15 +1,15 @@
 use conductor_core::{
-    node::{Node, SinkPort, SinkPortCell},
-    runner::Runner,
+    ports::{InputPort, InputPortCell},
+    Node, Runner,
 };
 use std::fmt::Display;
 
 pub struct ConsolePrinterRunner<T: Display> {
-    pub input: SinkPort<T>,
+    input: InputPort<T>,
 }
 
 impl<T: Display> Runner for ConsolePrinterRunner<T> {
-    fn run(&self) {
+    fn run(self: Box<Self>) {
         loop {
             println!("{}", self.input.recv().unwrap());
         }
@@ -17,13 +17,13 @@ impl<T: Display> Runner for ConsolePrinterRunner<T> {
 }
 
 pub struct ConsolePrinter<T: Display> {
-    pub input: SinkPortCell<T>,
+    pub input: InputPortCell<T>,
 }
 
 impl<T: Display> ConsolePrinter<T> {
     pub fn new() -> Self {
         Self {
-            input: SinkPortCell::<T>::new(),
+            input: InputPortCell::<T>::new(),
         }
     }
 }
