@@ -1,14 +1,17 @@
-pub mod nodes;
+pub mod node;
 pub mod prelude;
+pub mod runner;
 
-use nodes::Node;
+use node::Node;
 use std::thread;
 
-pub fn run_internal(nodes: Vec<Box<dyn Node + Send>>) {
+pub fn run_internal(nodes: Vec<Box<dyn Node>>) {
     let mut handles = vec![];
 
     for node in nodes {
-        let handle = thread::spawn(move || node.run());
+        let runner = node.create_runner();
+
+        let handle = thread::spawn(move || runner.run());
 
         handles.push(handle);
     }

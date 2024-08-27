@@ -1,4 +1,7 @@
-use conductor_core::nodes::{Node, SourcePort};
+use conductor_core::{
+    node::{Node, SourcePort, SourcePortCell},
+    runner::Runner,
+};
 use std::net::UdpSocket;
 
 pub trait UdpDeserializer {
@@ -6,23 +9,12 @@ pub trait UdpDeserializer {
     fn deserialize_packet(bytes: &[u8]) -> Self;
 }
 
-pub struct UdpReceiver<T: Clone + UdpDeserializer> {
+pub struct UdpReceiverRunner<T: Clone + UdpDeserializer> {
     socket: UdpSocket,
     pub output: SourcePort<T>,
 }
 
-impl<T: Clone + UdpDeserializer> UdpReceiver<T> {
-    pub fn new(addr: &str) -> Self {
-        let socket = UdpSocket::bind(addr).unwrap();
-
-        Self {
-            socket,
-            output: SourcePort::<T>::new(),
-        }
-    }
-}
-
-impl<T: Clone + UdpDeserializer> Node for UdpReceiver<T> {
+impl<T: Clone + UdpDeserializer> Runner for UdpReceiverRunner<T> {
     fn run(&self) {
         loop {
             let mut buffer = vec![0; T::max_packet_size()];
@@ -31,5 +23,31 @@ impl<T: Clone + UdpDeserializer> Node for UdpReceiver<T> {
             let data = T::deserialize_packet(&buffer[..size]);
             self.output.send(&data);
         }
+    }
+}
+
+pub struct UdpReceiver<'a, T: Clone + UdpDeserializer> {
+    addr: &'a str,
+    pub output: SourcePortCell<T>,
+}
+
+impl<'a, T: Clone + UdpDeserializer> UdpReceiver<'a, T> {
+    pub fn new(addr: &'a str) -> Self {
+        Self {
+            addr,
+            output: SourcePortCell::<T>::new(),
+        }
+    }
+}
+
+// TODO: Can + Send + 'static be removed?
+impl<'a, T: Clone + UdpDeserializer + Send + 'static> Node for UdpReceiver<'a, T> {
+    fn create_runner(self: Box<Self>) -> Box<dyn Runner + Send> {
+        let socket = UdpSocket::bind(self.addr).unwrap();
+
+        Box::new(UdpReceiverRunner {
+            socket,
+            output: self.output.into(),
+        })
     }
 }
