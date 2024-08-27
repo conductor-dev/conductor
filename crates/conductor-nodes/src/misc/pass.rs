@@ -1,32 +1,48 @@
-use std::fmt::Display;
+use conductor_core::{
+    node::{Node, SinkPort, SinkPortCell, SourcePort, SourcePortCell},
+    runner::Runner,
+};
 
-use conductor_core::nodes::{Node, SinkPort};
-
-pub struct Pass<T> {
+pub struct PassRunner<T: Clone> {
     pub input: SinkPort<T>,
-    pub output: SinkPort<T>,
+    pub output: SourcePort<T>,
 }
 
-impl<T: Display> Pass<T> {
-    pub fn new() -> Self {
-        Self {
-            input: SinkPort::<T>::new(),
-            output: SinkPort::<T>::new(),
-        }
-    }
-}
-
-impl<T: Display> Node for Pass<T> {
+impl<T: Clone> Runner for PassRunner<T> {
     fn run(&self) {
         loop {
-            let value = self.input.rx.recv().unwrap();
-            self.output.tx.send(value).unwrap();
+            let value = self.input.recv().unwrap();
+            self.output.send(&value);
         }
     }
 }
 
-impl<T: Display> Default for Pass<T> {
+pub struct Pass<T: Clone> {
+    pub input: SinkPortCell<T>,
+    pub output: SourcePortCell<T>,
+}
+
+impl<T: Clone> Pass<T> {
+    pub fn new() -> Self {
+        Self {
+            input: SinkPortCell::<T>::new(),
+            output: SourcePortCell::<T>::new(),
+        }
+    }
+}
+
+impl<T: Clone> Default for Pass<T> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+// TODO: Can + Send + 'static be removed?
+impl<T: Clone + Send + 'static> Node for Pass<T> {
+    fn create_runner(self: Box<Self>) -> Box<dyn Runner + Send> {
+        Box::new(PassRunner {
+            input: self.input.into(),
+            output: self.output.into(),
+        })
     }
 }

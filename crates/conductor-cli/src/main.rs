@@ -2,7 +2,7 @@ use conductor::prelude::*;
 use std::fmt::Display;
 
 fn main() {
-    let mut udp_receiver = UdpReceiver::<MyPacket>::new("127.0.0.1:8080");
+    let udp_receiver = UdpReceiver::<MyPacket>::new("127.0.0.1:8080");
     let console_printer = ConsolePrinter::new();
 
     udp_receiver.output.connect(&console_printer.input);
