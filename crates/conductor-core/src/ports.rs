@@ -68,10 +68,6 @@ impl<T: Clone> NodeRunnerOutputPort<T> {
         Self { tx: Vec::new() }
     }
 
-    pub fn connect(&mut self, input: &NodeConfigInputPort<T>) {
-        self.tx.push(input.0.borrow().tx.clone());
-    }
-
     pub fn send(&self, value: &T) {
         for tx in &self.tx {
             tx.send(value.clone()).unwrap();
@@ -108,7 +104,7 @@ impl<T: Clone> NodeConfigOutputPort<T> {
     }
 
     pub fn connect(&self, input: &NodeConfigInputPort<T>) {
-        self.0.borrow_mut().connect(input);
+        self.0.borrow_mut().tx.push(input.0.borrow().tx.clone());
     }
 
     pub fn send(&self, value: &T) {

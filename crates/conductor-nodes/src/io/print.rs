@@ -28,7 +28,7 @@ impl<T: Display> ConsolePrinter<T> {
     }
 }
 
-impl Default for ConsolePrinter<f32> {
+impl<T: Display> Default for ConsolePrinter<T> {
     fn default() -> Self {
         Self::new()
     }
