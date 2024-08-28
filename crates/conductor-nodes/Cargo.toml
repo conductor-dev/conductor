@@ -6,3 +6,4 @@ readme = { workspace = true }
 
 [dependencies]
 conductor-core = { workspace = true }
+conductor-macros = { workspace = true }

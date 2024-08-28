@@ -3,16 +3,17 @@ use std::fmt::Display;
 
 fn main() {
     let udp_receiver = UdpReceiver::<MyPacket>::new("127.0.0.1:8080");
+    let normer = Normer::new();
     let console_printer = ConsolePrinter::new();
 
-    let pipeline = pipeline!([udp_receiver], (), (udp_receiver.output));
+    udp_receiver.output.connect(&console_printer.input);
+    udp_receiver.output.connect(&normer.input);
+    normer.output.connect(&console_printer.input);
 
-    pipeline.output.connect(&console_printer.input);
-
-    pipeline![pipeline, console_printer].run();
+    pipeline![udp_receiver, normer, console_printer].run();
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Norm)]
 struct MyPacket(f32);
 
 impl UdpDeserializer for MyPacket {

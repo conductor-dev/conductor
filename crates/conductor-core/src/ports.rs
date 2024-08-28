@@ -106,10 +106,6 @@ impl<T: Clone> NodeConfigOutputPort<T> {
     pub fn connect(&self, input: &NodeConfigInputPort<T>) {
         self.0.borrow_mut().tx.push(input.0.borrow().tx.clone());
     }
-
-    pub fn send(&self, value: &T) {
-        self.0.borrow().send(value);
-    }
 }
 
 impl<T: Clone> Default for NodeConfigOutputPort<T> {

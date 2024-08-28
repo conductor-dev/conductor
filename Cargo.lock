@@ -129,6 +129,7 @@ name = "conductor-nodes"
 version = "0.1.0"
 dependencies = [
  "conductor-core",
+ "conductor-macros",
 ]
 
 [[package]]
