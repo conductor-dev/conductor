@@ -1,14 +1,14 @@
 use conductor_core::{
-    ports::{InputPort, InputPortCell, OutputPort, OutputPortCell},
-    Node, Runner,
+    ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
+    NodeConfig, NodeRunner,
 };
 
 pub struct PassRunner<T: Clone> {
-    input: InputPort<T>,
-    output: OutputPort<T>,
+    input: NodeRunnerInputPort<T>,
+    output: NodeRunnerOutputPort<T>,
 }
 
-impl<T: Clone> Runner for PassRunner<T> {
+impl<T: Clone> NodeRunner for PassRunner<T> {
     fn run(self: Box<Self>) {
         loop {
             let value = self.input.recv().unwrap();
@@ -18,15 +18,15 @@ impl<T: Clone> Runner for PassRunner<T> {
 }
 
 pub struct Pass<T: Clone> {
-    pub input: InputPortCell<T>,
-    pub output: OutputPortCell<T>,
+    pub input: NodeConfigInputPort<T>,
+    pub output: NodeConfigOutputPort<T>,
 }
 
 impl<T: Clone> Pass<T> {
     pub fn new() -> Self {
         Self {
-            input: InputPortCell::<T>::new(),
-            output: OutputPortCell::<T>::new(),
+            input: NodeConfigInputPort::<T>::new(),
+            output: NodeConfigOutputPort::<T>::new(),
         }
     }
 }
@@ -38,8 +38,8 @@ impl<T: Clone> Default for Pass<T> {
 }
 
 // TODO: Can + Send + 'static be removed?
-impl<T: Clone + Send + 'static> Node for Pass<T> {
-    fn create_runner(self: Box<Self>) -> Box<dyn Runner + Send> {
+impl<T: Clone + Send + 'static> NodeConfig for Pass<T> {
+    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         Box::new(PassRunner {
             input: self.input.into(),
             output: self.output.into(),

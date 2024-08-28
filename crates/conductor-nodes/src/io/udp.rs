@@ -1,6 +1,6 @@
 use conductor_core::{
-    ports::{OutputPort, OutputPortCell},
-    Node, Runner,
+    ports::{NodeConfigOutputPort, NodeRunnerOutputPort},
+    NodeConfig, NodeRunner,
 };
 use std::net::UdpSocket;
 
@@ -11,10 +11,10 @@ pub trait UdpDeserializer {
 
 pub struct UdpReceiverRunner<T: Clone + UdpDeserializer> {
     socket: UdpSocket,
-    output: OutputPort<T>,
+    output: NodeRunnerOutputPort<T>,
 }
 
-impl<T: Clone + UdpDeserializer> Runner for UdpReceiverRunner<T> {
+impl<T: Clone + UdpDeserializer> NodeRunner for UdpReceiverRunner<T> {
     fn run(self: Box<Self>) {
         loop {
             let mut buffer = vec![0; T::max_packet_size()];
@@ -28,21 +28,21 @@ impl<T: Clone + UdpDeserializer> Runner for UdpReceiverRunner<T> {
 
 pub struct UdpReceiver<'a, T: Clone + UdpDeserializer> {
     addr: &'a str,
-    pub output: OutputPortCell<T>,
+    pub output: NodeConfigOutputPort<T>,
 }
 
 impl<'a, T: Clone + UdpDeserializer> UdpReceiver<'a, T> {
     pub fn new(addr: &'a str) -> Self {
         Self {
             addr,
-            output: OutputPortCell::<T>::new(),
+            output: NodeConfigOutputPort::<T>::new(),
         }
     }
 }
 
 // TODO: Can + Send + 'static be removed?
-impl<'a, T: Clone + UdpDeserializer + Send + 'static> Node for UdpReceiver<'a, T> {
-    fn create_runner(self: Box<Self>) -> Box<dyn Runner + Send> {
+impl<'a, T: Clone + UdpDeserializer + Send + 'static> NodeConfig for UdpReceiver<'a, T> {
+    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         let socket = UdpSocket::bind(self.addr).unwrap();
 
         Box::new(UdpReceiverRunner {

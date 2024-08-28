@@ -1,14 +1,14 @@
 use conductor_core::{
-    ports::{InputPort, InputPortCell},
-    Node, Runner,
+    ports::{NodeConfigInputPort, NodeRunnerInputPort},
+    NodeConfig, NodeRunner,
 };
 use std::fmt::Display;
 
 pub struct ConsolePrinterRunner<T: Display> {
-    input: InputPort<T>,
+    input: NodeRunnerInputPort<T>,
 }
 
-impl<T: Display> Runner for ConsolePrinterRunner<T> {
+impl<T: Display> NodeRunner for ConsolePrinterRunner<T> {
     fn run(self: Box<Self>) {
         loop {
             println!("{}", self.input.recv().unwrap());
@@ -17,13 +17,13 @@ impl<T: Display> Runner for ConsolePrinterRunner<T> {
 }
 
 pub struct ConsolePrinter<T: Display> {
-    pub input: InputPortCell<T>,
+    pub input: NodeConfigInputPort<T>,
 }
 
 impl<T: Display> ConsolePrinter<T> {
     pub fn new() -> Self {
         Self {
-            input: InputPortCell::<T>::new(),
+            input: NodeConfigInputPort::<T>::new(),
         }
     }
 }
@@ -35,8 +35,8 @@ impl Default for ConsolePrinter<f32> {
 }
 
 // TODO: Can + Send + 'static be removed?
-impl<T: Display + Send + 'static> Node for ConsolePrinter<T> {
-    fn create_runner(self: Box<Self>) -> Box<dyn Runner + Send> {
+impl<T: Display + Send + 'static> NodeConfig for ConsolePrinter<T> {
+    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         Box::new(ConsolePrinterRunner {
             input: self.input.into(),
         })

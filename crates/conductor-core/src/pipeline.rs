@@ -1,12 +1,12 @@
 pub use crate::pipeline;
-use crate::{Node, Runner};
+use crate::{NodeConfig, NodeRunner};
 use std::thread;
 
 pub struct PipelineRunner {
-    runners: Vec<Box<dyn Runner + Send>>,
+    runners: Vec<Box<dyn NodeRunner + Send>>,
 }
 
-impl Runner for PipelineRunner {
+impl NodeRunner for PipelineRunner {
     fn run(self: Box<Self>) {
         let mut handles = vec![];
 
@@ -23,13 +23,13 @@ impl Runner for PipelineRunner {
 }
 
 pub struct Pipeline<I, O> {
-    pub(crate) nodes: Vec<Box<dyn Node>>,
+    pub(crate) nodes: Vec<Box<dyn NodeConfig>>,
     pub input: I,
     pub output: O,
 }
 
 impl<I, O> Pipeline<I, O> {
-    pub fn new(nodes: Vec<Box<dyn Node>>, input: I, output: O) -> Self {
+    pub fn new(nodes: Vec<Box<dyn NodeConfig>>, input: I, output: O) -> Self {
         Self {
             nodes,
             input,
@@ -40,12 +40,12 @@ impl<I, O> Pipeline<I, O> {
 
 impl Pipeline<(), ()> {
     pub fn run(self) {
-        Box::new(self).create_runner().run();
+        Box::new(self).into_runner().run();
     }
 }
 
-impl<I, O> Node for Pipeline<I, O> {
-    fn create_runner(self: Box<Self>) -> Box<dyn Runner + Send> {
+impl<I, O> NodeConfig for Pipeline<I, O> {
+    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         // Make sure to drop the input and output ports here so the e.g. SourcePortCell to SourcePort conversion works
         drop(self.input);
         drop(self.output);
@@ -54,7 +54,7 @@ impl<I, O> Node for Pipeline<I, O> {
             runners: self
                 .nodes
                 .into_iter()
-                .map(|node| node.create_runner())
+                .map(|node| node.into_runner())
                 .collect(),
         })
     }

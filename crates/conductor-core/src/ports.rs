@@ -4,12 +4,12 @@ use std::{
     sync::mpsc::{channel, Receiver, RecvError, Sender},
 };
 
-pub struct InputPort<T> {
+pub struct NodeRunnerInputPort<T> {
     tx: Sender<T>,
     rx: Receiver<T>,
 }
 
-impl<T> InputPort<T> {
+impl<T> NodeRunnerInputPort<T> {
     pub fn new() -> Self {
         let (tx, rx) = channel::<T>();
         Self { tx, rx }
@@ -20,22 +20,22 @@ impl<T> InputPort<T> {
     }
 }
 
-impl<T> Default for InputPort<T> {
+impl<T> Default for NodeRunnerInputPort<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub struct InputPortCell<T>(Rc<RefCell<InputPort<T>>>);
+pub struct NodeConfigInputPort<T>(Rc<RefCell<NodeRunnerInputPort<T>>>);
 
-impl<T> Clone for InputPortCell<T> {
+impl<T> Clone for NodeConfigInputPort<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl<T> From<InputPortCell<T>> for InputPort<T> {
-    fn from(cell: InputPortCell<T>) -> Self {
+impl<T> From<NodeConfigInputPort<T>> for NodeRunnerInputPort<T> {
+    fn from(cell: NodeConfigInputPort<T>) -> Self {
         match Rc::try_unwrap(cell.0) {
             Ok(inner) => inner.into_inner(),
             Err(_) => unreachable!(),
@@ -43,9 +43,9 @@ impl<T> From<InputPortCell<T>> for InputPort<T> {
     }
 }
 
-impl<T> InputPortCell<T> {
+impl<T> NodeConfigInputPort<T> {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(InputPort::new())))
+        Self(Rc::new(RefCell::new(NodeRunnerInputPort::new())))
     }
 
     pub fn recv(&self) -> Result<T, RecvError> {
@@ -53,22 +53,22 @@ impl<T> InputPortCell<T> {
     }
 }
 
-impl<T> Default for InputPortCell<T> {
+impl<T> Default for NodeConfigInputPort<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub struct OutputPort<T: Clone> {
+pub struct NodeRunnerOutputPort<T: Clone> {
     tx: Vec<Sender<T>>,
 }
 
-impl<T: Clone> OutputPort<T> {
+impl<T: Clone> NodeRunnerOutputPort<T> {
     pub fn new() -> Self {
         Self { tx: Vec::new() }
     }
 
-    pub fn connect(&mut self, input: &InputPortCell<T>) {
+    pub fn connect(&mut self, input: &NodeConfigInputPort<T>) {
         self.tx.push(input.0.borrow().tx.clone());
     }
 
@@ -79,22 +79,22 @@ impl<T: Clone> OutputPort<T> {
     }
 }
 
-impl<T: Clone> Default for OutputPort<T> {
+impl<T: Clone> Default for NodeRunnerOutputPort<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-pub struct OutputPortCell<T: Clone>(Rc<RefCell<OutputPort<T>>>);
+pub struct NodeConfigOutputPort<T: Clone>(Rc<RefCell<NodeRunnerOutputPort<T>>>);
 
-impl<T: Clone> Clone for OutputPortCell<T> {
+impl<T: Clone> Clone for NodeConfigOutputPort<T> {
     fn clone(&self) -> Self {
         Self(self.0.clone())
     }
 }
 
-impl<T: Clone> From<OutputPortCell<T>> for OutputPort<T> {
-    fn from(cell: OutputPortCell<T>) -> Self {
+impl<T: Clone> From<NodeConfigOutputPort<T>> for NodeRunnerOutputPort<T> {
+    fn from(cell: NodeConfigOutputPort<T>) -> Self {
         match Rc::try_unwrap(cell.0) {
             Ok(inner) => inner.into_inner(),
             Err(_) => unreachable!(),
@@ -102,12 +102,12 @@ impl<T: Clone> From<OutputPortCell<T>> for OutputPort<T> {
     }
 }
 
-impl<T: Clone> OutputPortCell<T> {
+impl<T: Clone> NodeConfigOutputPort<T> {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(OutputPort::new())))
+        Self(Rc::new(RefCell::new(NodeRunnerOutputPort::new())))
     }
 
-    pub fn connect(&self, input: &InputPortCell<T>) {
+    pub fn connect(&self, input: &NodeConfigInputPort<T>) {
         self.0.borrow_mut().connect(input);
     }
 
@@ -116,7 +116,7 @@ impl<T: Clone> OutputPortCell<T> {
     }
 }
 
-impl<T: Clone> Default for OutputPortCell<T> {
+impl<T: Clone> Default for NodeConfigOutputPort<T> {
     fn default() -> Self {
         Self::new()
     }

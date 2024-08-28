@@ -1,5 +1,5 @@
 pub use crate::{
     pipeline,
-    ports::{InputPort, InputPortCell, OutputPort, OutputPortCell},
-    Node, Runner,
+    ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
+    NodeConfig, NodeRunner,
 };
