@@ -62,7 +62,7 @@ where
     }
 }
 
-pub struct NormerRunner<O: Clone, T: Norm<Output = O>> {
+struct NormerRunner<O: Clone, T: Norm<Output = O>> {
     input: NodeRunnerInputPort<T>,
     output: NodeRunnerOutputPort<O>,
 }

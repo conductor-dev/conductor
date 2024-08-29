@@ -4,7 +4,7 @@ use conductor_core::{
 };
 use std::fmt::Display;
 
-pub struct ConsolePrinterRunner<T: Display> {
+struct ConsolePrinterRunner<T: Display> {
     input: NodeRunnerInputPort<T>,
 }
 

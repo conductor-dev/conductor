@@ -3,7 +3,7 @@ use conductor_core::{
     NodeConfig, NodeRunner,
 };
 
-pub struct PassRunner<T: Clone> {
+struct PassRunner<T: Clone> {
     input: NodeRunnerInputPort<T>,
     output: NodeRunnerOutputPort<T>,
 }

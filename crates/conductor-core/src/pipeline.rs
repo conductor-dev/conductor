@@ -2,7 +2,7 @@ pub use crate::pipeline;
 use crate::{NodeConfig, NodeRunner};
 use std::thread;
 
-pub struct PipelineRunner {
+struct PipelineRunner {
     runners: Vec<Box<dyn NodeRunner + Send>>,
 }
 
@@ -23,7 +23,7 @@ impl NodeRunner for PipelineRunner {
 }
 
 pub struct Pipeline<I, O> {
-    pub(crate) nodes: Vec<Box<dyn NodeConfig>>,
+    nodes: Vec<Box<dyn NodeConfig>>,
     pub input: I,
     pub output: O,
 }

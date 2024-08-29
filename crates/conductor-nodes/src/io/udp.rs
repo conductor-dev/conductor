@@ -9,7 +9,7 @@ pub trait UdpDeserializer {
     fn deserialize_packet(bytes: &[u8]) -> Self;
 }
 
-pub struct UdpReceiverRunner<T: Clone + UdpDeserializer> {
+struct UdpReceiverRunner<T: Clone + UdpDeserializer> {
     socket: UdpSocket,
     output: NodeRunnerOutputPort<T>,
 }
