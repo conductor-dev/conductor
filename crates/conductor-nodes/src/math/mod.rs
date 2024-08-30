@@ -1,3 +1,9 @@
+mod add;
+mod immediate;
 mod norm;
 
-pub use self::norm::{Norm, Normer};
+pub use self::{
+    add::Adder,
+    immediate::Immediate,
+    norm::{Norm, Normer},
+};
