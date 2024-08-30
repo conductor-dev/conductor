@@ -1,7 +1,7 @@
 use std::{
     cell::RefCell,
     rc::Rc,
-    sync::mpsc::{channel, Receiver, RecvError, Sender},
+    sync::mpsc::{channel, Receiver, RecvError, Sender, TryRecvError},
 };
 
 pub struct NodeRunnerInputPort<T> {
@@ -13,6 +13,10 @@ impl<T> NodeRunnerInputPort<T> {
     pub fn new() -> Self {
         let (tx, rx) = channel::<T>();
         Self { tx, rx }
+    }
+
+    pub fn try_recv(&self) -> Result<T, TryRecvError> {
+        self.rx.try_recv()
     }
 
     pub fn recv(&self) -> Result<T, RecvError> {
@@ -46,10 +50,6 @@ impl<T> From<NodeConfigInputPort<T>> for NodeRunnerInputPort<T> {
 impl<T> NodeConfigInputPort<T> {
     pub fn new() -> Self {
         Self(Rc::new(RefCell::new(NodeRunnerInputPort::new())))
-    }
-
-    pub fn recv(&self) -> Result<T, RecvError> {
-        self.0.borrow().rx.recv()
     }
 }
 
