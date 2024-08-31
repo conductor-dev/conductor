@@ -54,7 +54,7 @@ where
 
                     (self.input1_cache.clone().expect("must exist"), input2)
                 }
-                (Err(_), Err(_)) => continue,
+                (Err(TryRecvError::Empty), Err(TryRecvError::Empty)) => continue,
                 _ => panic!(),
             };
 
