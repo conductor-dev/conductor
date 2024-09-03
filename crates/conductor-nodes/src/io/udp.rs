@@ -74,23 +74,23 @@ impl<'a, T: Clone + UdpDeserializer + Send + 'static> NodeConfig for UdpReceiver
     }
 }
 
-pub struct UdpSender<'a, T: UdpSerializer> {
-    bind_addr: &'a str,
-    send_addr: &'a str,
+pub struct UdpSender<T: UdpSerializer> {
+    bind_addr: String,
+    send_addr: String,
     pub input: NodeConfigInputPort<T>,
 }
 
-impl<'a, T: UdpSerializer> UdpSender<'a, T> {
-    pub fn new(bind_addr: &'a str, send_addr: &'a str) -> Self {
+impl<T: UdpSerializer> UdpSender<T> {
+    pub fn new<A: Into<String>, B: Into<String>>(bind_addr: A, send_addr: B) -> Self {
         Self {
-            bind_addr,
-            send_addr,
+            bind_addr: bind_addr.into(),
+            send_addr: send_addr.into(),
             input: NodeConfigInputPort::new(),
         }
     }
 }
 
-impl<'a, T: UdpSerializer + Send + 'static> NodeConfig for UdpSender<'a, T> {
+impl<T: UdpSerializer + Send + 'static> NodeConfig for UdpSender<T> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         let socket = UdpSocket::bind(self.bind_addr).unwrap();
 
