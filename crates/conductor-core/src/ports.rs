@@ -1,17 +1,94 @@
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::mpsc::{channel, Receiver, RecvError, Sender, TryRecvError},
-};
+pub use crate::receive;
+use crossbeam_channel::{Receiver, RecvError, Select, SelectedOperation, Sender, TryRecvError};
+use std::{cell::RefCell, rc::Rc};
+
+/*
+receive! {
+    self.input1 => msg => 0,
+    self.input2 => msg => 1,
+}
+*/
+
+#[macro_export]
+macro_rules! receive {
+    ($(($port:expr): $msg:ident => $output:expr),*) => {
+        {
+            let mut multi_receiver = $crate::ports::MultiReceiver::new();
+            $(
+                multi_receiver.recv(&$port);
+            )*
+
+            // let index = multi_receiver.select();
+
+            // $(
+            //     println!("{}: {}", 0, $output);
+            // )*
+
+            // match index {
+            //     $(
+            //         $msg => {
+            //             let $msg = $port.recv().unwrap();
+            //             $output
+            //         },
+            //     )*
+            //     _ => unreachable!(),
+            // }
+
+            // TODO: This is really ugly. The counter could probably be removed by turning this into a recursive macro.
+            loop {
+                let oper = multi_receiver.select();
+                let index = oper.index();
+                let mut counter = 0;
+
+                $(
+                    if index == counter {
+                        // let $msg = $port.recv().unwrap();
+                        let $msg = oper.recv(&$port.rx).unwrap();
+                        break $output;
+                    }
+                    counter += 1;
+                )*
+
+                unreachable!();
+            }
+        }
+    };
+}
+
+pub struct MultiReceiver<'a> {
+    select: Select<'a>,
+}
+
+impl<'a> MultiReceiver<'a> {
+    pub fn new() -> Self {
+        Self {
+            select: Select::new(),
+        }
+    }
+
+    pub fn recv<T>(&mut self, port: &'a NodeRunnerInputPort<T>) {
+        self.select.recv(&port.rx);
+    }
+
+    pub fn select(&mut self) -> SelectedOperation<'a> {
+        self.select.select()
+    }
+}
+
+impl Default for MultiReceiver<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 pub struct NodeRunnerInputPort<T> {
     tx: Sender<T>,
-    rx: Receiver<T>,
+    pub rx: Receiver<T>, // TODO: make private
 }
 
 impl<T> NodeRunnerInputPort<T> {
     pub fn new() -> Self {
-        let (tx, rx) = channel::<T>();
+        let (tx, rx) = crossbeam_channel::unbounded::<T>();
         Self { tx, rx }
     }
 

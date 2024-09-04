@@ -1,17 +1,24 @@
 use conductor::prelude::*;
-use std::fmt::Display;
+use std::{fmt::Display, ops::Add};
 
 fn main() {
     let udp_receiver = UdpReceiver::<MyPacket>::new("127.0.0.1:8080");
-    let norm = Normer::new();
-    let udp_sender = UdpSender::new("127.0.0.1:0", "127.0.0.1:9090");
-    let printer = ConsolePrinter::new();
+    let normer = Normer::new();
 
-    udp_receiver.output.connect(&norm.input);
-    norm.output.connect(&udp_sender.input);
-    norm.output.connect(&printer.input);
+    let immediate = Immediate::new(MyPacket(10.0));
+    let adder = Adder::new();
 
-    pipeline![udp_receiver, norm, udp_sender, printer].run();
+    let console_printer = ConsolePrinter::new();
+
+    udp_receiver.output.connect(&normer.input);
+
+    normer.output.connect(&adder.input1);
+    immediate.output.connect(&adder.input2);
+
+    normer.output.connect(&console_printer.input);
+    adder.output.connect(&console_printer.input);
+
+    pipeline![udp_receiver, normer, immediate, adder, console_printer].run();
 }
 
 #[derive(Clone, Copy, Norm)]
@@ -20,6 +27,14 @@ struct MyPacket(f32);
 impl From<MyPacket> for f64 {
     fn from(packet: MyPacket) -> Self {
         packet.0 as f64
+    }
+}
+
+impl Add for MyPacket {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        Self(self.0 + rhs.0)
     }
 }
 
