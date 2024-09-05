@@ -5,3 +5,4 @@ edition = { workspace = true }
 readme = { workspace = true }
 
 [dependencies]
+crossbeam-channel = "0.5.13"
