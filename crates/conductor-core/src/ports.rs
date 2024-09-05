@@ -4,7 +4,7 @@ use std::{cell::RefCell, rc::Rc};
 
 #[macro_export]
 macro_rules! receive {
-    ($(($port:expr): $msg:ident => $output:expr),*) => {
+    ($(($port:expr): $msg:ident => $output:expr),* $(,)?) => {
         {
             let mut multi_receiver = $crate::ports::MultiReceiver::new();
             $(

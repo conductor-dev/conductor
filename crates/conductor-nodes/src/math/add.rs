@@ -35,7 +35,7 @@ where
                 },
                 (self.input2): msg => {
                     input2_cache = msg;
-                }
+                },
             };
 
             self.output
