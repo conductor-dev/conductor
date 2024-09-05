@@ -2,6 +2,17 @@ pub use crate::receive;
 use crossbeam_channel::{Receiver, RecvError, Select, SelectedOperation, Sender, TryRecvError};
 use std::{cell::RefCell, rc::Rc};
 
+/// ```ignore
+/// use conductor::prelude::*;
+///
+/// let input1 = NodeRunnerInputPort::<f32>::new();
+/// let input2 = NodeRunnerInputPort::<f32>::new();
+///
+/// receive! {
+///     (input1): msg => println!("Received input1: {:?}", msg),
+///     (input2): msg => println!("Received input2: {:?}", msg),
+/// };
+/// ```
 #[macro_export]
 macro_rules! receive {
     ($(($port:expr): $msg:ident => $output:expr),* $(,)?) => {
