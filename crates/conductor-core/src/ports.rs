@@ -2,13 +2,6 @@ pub use crate::receive;
 use crossbeam_channel::{Receiver, RecvError, Select, SelectedOperation, Sender, TryRecvError};
 use std::{cell::RefCell, rc::Rc};
 
-/*
-receive! {
-    self.input1 => msg => 0,
-    self.input2 => msg => 1,
-}
-*/
-
 #[macro_export]
 macro_rules! receive {
     ($(($port:expr): $msg:ident => $output:expr),*) => {
@@ -18,22 +11,6 @@ macro_rules! receive {
                 multi_receiver.recv(&$port);
             )*
 
-            // let index = multi_receiver.select();
-
-            // $(
-            //     println!("{}: {}", 0, $output);
-            // )*
-
-            // match index {
-            //     $(
-            //         $msg => {
-            //             let $msg = $port.recv().unwrap();
-            //             $output
-            //         },
-            //     )*
-            //     _ => unreachable!(),
-            // }
-
             // TODO: This is really ugly. The counter could probably be removed by turning this into a recursive macro.
             loop {
                 let oper = multi_receiver.select();
@@ -42,8 +19,7 @@ macro_rules! receive {
 
                 $(
                     if index == counter {
-                        // let $msg = $port.recv().unwrap();
-                        let $msg = oper.recv(&$port.rx).unwrap();
+                        let $msg = $port.recv_select(oper).unwrap();
                         break $output;
                     }
                     counter += 1;
@@ -83,7 +59,7 @@ impl Default for MultiReceiver<'_> {
 
 pub struct NodeRunnerInputPort<T> {
     tx: Sender<T>,
-    pub rx: Receiver<T>, // TODO: make private
+    rx: Receiver<T>,
 }
 
 impl<T> NodeRunnerInputPort<T> {
@@ -98,6 +74,10 @@ impl<T> NodeRunnerInputPort<T> {
 
     pub fn recv(&self) -> Result<T, RecvError> {
         self.rx.recv()
+    }
+
+    pub fn recv_select(&self, select: SelectedOperation) -> Result<T, RecvError> {
+        select.recv(&self.rx)
     }
 }
 
