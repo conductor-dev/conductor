@@ -1,10 +1,10 @@
-mod add;
+mod arihtmetic;
 mod fft;
 mod immediate;
 mod norm;
 
 pub use self::{
-    add::Adder,
+    arihtmetic::Adder,
     fft::FFT,
     immediate::Immediate,
     norm::{Norm, Normer},
