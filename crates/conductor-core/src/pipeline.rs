@@ -71,7 +71,7 @@ macro_rules! pipeline {
             let cloned_input = ($($input.clone()),*);
             let cloned_output = ($($output.clone()),*);
 
-            conductor::core::pipeline::Pipeline::new(
+            $crate::pipeline::Pipeline::new(
                 vec![$(Box::new($node)),*],
                 cloned_input,
                 cloned_output
