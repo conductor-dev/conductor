@@ -1,5 +1,13 @@
 pub use crate::{
     io::{ConsolePrinter, UdpDeserializer, UdpReceiver, UdpSender, UdpSerializer},
-    math::{Adder, Immediate, Norm, Normer, FFT},
+    math::{
+        arihtmetic::{
+            Adder, BitwiseAnder, BitwiseOrer, BitwiseXorer, Divider, LeftShiter, Multiplier,
+            Negator, Noter, Remainder, RightShifter, Subtractor,
+        },
+        fft::FFT,
+        immediate::Immediate,
+        norm::{Norm, Normer},
+    },
     misc::Pass,
 };
