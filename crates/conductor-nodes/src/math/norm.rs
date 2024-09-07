@@ -1,3 +1,4 @@
+use crate::implement_unary_trait_operation;
 use conductor_core::{
     ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
     NodeConfig, NodeRunner,
@@ -62,57 +63,4 @@ where
     }
 }
 
-struct NormerRunner<O: Clone, T: Norm<Output = O>> {
-    input: NodeRunnerInputPort<T>,
-    output: NodeRunnerOutputPort<O>,
-}
-
-impl<O, T> NodeRunner for NormerRunner<O, T>
-where
-    O: Clone,
-    T: Norm<Output = O> + Clone,
-{
-    fn run(self: Box<Self>) {
-        loop {
-            let value = self.input.recv().unwrap();
-
-            let norm = value.norm();
-
-            self.output.send(&norm);
-        }
-    }
-}
-
-pub struct Normer<O: Clone, T: Norm<Output = O>> {
-    pub input: NodeConfigInputPort<T>,
-    pub output: NodeConfigOutputPort<O>,
-}
-
-impl<O: Clone, T: Norm<Output = O>> Normer<O, T> {
-    pub fn new() -> Self {
-        Self {
-            input: NodeConfigInputPort::new(),
-            output: NodeConfigOutputPort::new(),
-        }
-    }
-}
-
-impl<O: Clone, T: Norm<Output = O>> Default for Normer<O, T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-// TODO: Can + Send + 'static be removed?
-impl<O, T> NodeConfig for Normer<O, T>
-where
-    O: Clone + Send + 'static,
-    T: Norm<Output = O> + Clone + Send + 'static,
-{
-    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
-        Box::new(NormerRunner {
-            input: self.input.into(),
-            output: self.output.into(),
-        })
-    }
-}
+implement_unary_trait_operation!(Normer, NormerRunner, Norm, norm);
