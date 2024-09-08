@@ -8,6 +8,7 @@ pub use crate::{
         fft::FFT,
         immediate::Immediate,
         norm::{Norm, Normer},
+        trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
     },
     misc::Pass,
 };
