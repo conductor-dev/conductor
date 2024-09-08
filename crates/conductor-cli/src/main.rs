@@ -7,15 +7,25 @@ fn main() {
 
     let sin = Siner::new();
 
+    let downsampler = Downsampler::new(5000);
     let console_printer = ConsolePrinter::new();
     let udp_sender = UdpSender::new("127.0.0.1:0", "127.0.0.1:9090");
 
     sample_generator.output.connect(&sin.input);
 
-    sin.output.connect(&console_printer.input);
+    sin.output.connect(&downsampler.input);
+    downsampler.output.connect(&console_printer.input);
+
     sin.output.connect(&udp_sender.input);
 
-    pipeline![sample_generator, sin, console_printer, udp_sender].run();
+    pipeline![
+        sample_generator,
+        downsampler,
+        sin,
+        console_printer,
+        udp_sender
+    ]
+    .run();
 }
 
 #[derive(Clone, Copy, Norm)]
