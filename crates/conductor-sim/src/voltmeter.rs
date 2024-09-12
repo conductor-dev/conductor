@@ -34,19 +34,19 @@ pub fn voltmeter(command: PeakVoltmeterCommand) -> ConductorSimResult<()> {
 
     let stream = UdpSocket::bind("127.0.0.1:0")?;
 
-    let seconds_per_sample = 1.0 / (command.sample_rate as f64);
+    let seconds_per_sample = Duration::from_secs_f64(1.0 / (command.sample_rate as f64));
     let mut last_time = Instant::now();
 
     for record in records {
         stream.send_to(&record.sample.to_ne_bytes(), &command.target)?;
 
-        while last_time.elapsed() < Duration::from_secs_f64(seconds_per_sample) {
+        while last_time.elapsed() < seconds_per_sample {
             // TODO: Maybe use
             // std::hint::spin_loop();
             // or
             // thread::yield_now();
         }
-        last_time = Instant::now();
+        last_time += seconds_per_sample;
     }
 
     Ok(())
