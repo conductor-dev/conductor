@@ -15,5 +15,3 @@ conductor-nodes = { path = "crates/conductor-nodes", version = "0.1.0" }
 conductor-macros = { path = "crates/conductor-macros", version = "0.1.0" }
 conductor-cli = { path = "crates/conductor-cli", version = "0.1.0" }
 conductor-sim = { path = "crates/conductor-sim", version = "0.1.0" }
-
-clap = { version = "4.5.14", features = ["derive"] }

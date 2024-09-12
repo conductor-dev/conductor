@@ -1,8 +1,9 @@
 use conductor_core::{
     ports::{NodeConfigOutputPort, NodeRunnerOutputPort},
+    timer::set_interval,
     NodeConfig, NodeRunner,
 };
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 pub trait Sample {
     fn sample(sample_rate: usize, current_sample: usize) -> Self;
@@ -28,23 +29,14 @@ struct SampleGeneratorRunner<O: Sample + Clone> {
 impl<O: Sample + Clone> NodeRunner for SampleGeneratorRunner<O> {
     fn run(self: Box<Self>) {
         let mut current_sample = 0;
-        let seconds_per_sample = 1.0 / (self.sample_rate as f64);
-        let mut last_time = Instant::now();
+        let seconds_per_sample = Duration::from_secs_f64(1.0 / (self.sample_rate as f64));
 
-        loop {
+        set_interval(seconds_per_sample, || {
             self.output
                 .send(&O::sample(self.sample_rate, current_sample));
 
             current_sample += 1;
-
-            while last_time.elapsed() < Duration::from_secs_f64(seconds_per_sample) {
-                // TODO: Maybe use
-                // std::hint::spin_loop();
-                // or
-                // thread::yield_now();
-            }
-            last_time = Instant::now();
-        }
+        })
     }
 }
 
