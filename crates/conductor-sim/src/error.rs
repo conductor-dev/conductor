@@ -6,6 +6,7 @@ pub type ConductorSimResult<T> = Result<T, ConductorSimError>;
 pub enum ConductorSimError {
     CsvError(csv::Error),
     TcpError(std::io::Error),
+    EframeError(eframe::Error),
 }
 
 impl From<csv::Error> for ConductorSimError {
@@ -20,11 +21,18 @@ impl From<std::io::Error> for ConductorSimError {
     }
 }
 
+impl From<eframe::Error> for ConductorSimError {
+    fn from(e: eframe::Error) -> Self {
+        ConductorSimError::EframeError(e)
+    }
+}
+
 impl Display for ConductorSimError {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             ConductorSimError::CsvError(e) => write!(f, "{}", e),
             ConductorSimError::TcpError(e) => write!(f, "{}", e),
+            ConductorSimError::EframeError(e) => write!(f, "{}", e),
         }
     }
 }
