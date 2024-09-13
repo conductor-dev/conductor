@@ -49,10 +49,20 @@ pub struct PeakVoltmeterCommand {
     pub sample_rate: u16,
 }
 
+#[derive(Debug, Clone, Parser)]
+pub struct PlotterCommand {
+    #[arg(long)]
+    pub bind_address: String,
+
+    #[arg(long)]
+    pub buffer_size: usize,
+}
+
 #[derive(Debug, Clone, Subcommand)]
 #[command()]
 pub enum Command {
     PeakVoltmeter(PeakVoltmeterCommand),
+    Plotter(PlotterCommand),
 }
 
 #[derive(Debug, Parser)]
