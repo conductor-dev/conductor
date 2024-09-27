@@ -5,7 +5,10 @@ fn main() {
     let sample_generator = SampleGenerator::<MyPacket>::new(31250);
     // let normer = Normer::new();
 
-    let sin = Siner::new();
+    let value = 6.0;
+
+    let sin: Lambdaer<MyPacket, MyPacket> =
+        Lambdaer::new(move |x: MyPacket| MyPacket(x.0.sin() + value));
 
     let downsampler = Downsampler::new(5000);
     let console_printer = ConsolePrinter::new();
