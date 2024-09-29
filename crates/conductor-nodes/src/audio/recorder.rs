@@ -13,14 +13,17 @@ impl NodeRunner for AudioRecorderRunner {
     fn run(self: Box<Self>) {
         let host = cpal::default_host();
         let input_device = host.default_input_device().unwrap();
-        let config = input_device.default_input_config().unwrap();
+        let config = input_device.default_input_config().unwrap().into();
 
         let stream = input_device
             .build_input_stream(
-                &config.into(),
+                &config,
                 move |data, _: &_| {
-                    for &sample in data {
-                        self.output.send(&sample);
+                    // Convert input to mono signal
+                    let chunks = data.chunks(config.channels as usize);
+
+                    for chunk in chunks {
+                        self.output.send(chunk.first().unwrap());
                     }
                 },
                 move |err| {

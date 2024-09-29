@@ -13,14 +13,21 @@ impl NodeRunner for AudioPlayerRunner {
     fn run(self: Box<Self>) {
         let host = cpal::default_host();
         let output_device = host.default_output_device().unwrap();
-        let config = output_device.default_output_config().unwrap();
+        let config = output_device.default_output_config().unwrap().into();
 
         let stream = output_device
             .build_output_stream(
-                &config.into(),
+                &config,
                 move |data, _: &_| {
-                    for sample in data {
-                        *sample = self.input.recv().unwrap();
+                    // Play mono signal on every channel
+                    let chunks = data.chunks_mut(config.channels as usize);
+
+                    for chunk in chunks {
+                        let input = self.input.recv().unwrap();
+
+                        for sample in chunk {
+                            *sample = input;
+                        }
                     }
                 },
                 move |err| {
