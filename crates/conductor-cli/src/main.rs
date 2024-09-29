@@ -1,61 +1,50 @@
 use conductor::prelude::*;
-use std::fmt::Display;
 
 fn main() {
-    let sample_generator = SampleGenerator::<MyPacket>::new(31250);
-    // let normer = Normer::new();
+    let udp_receiver = UdpReceiver::<MyPacket>::new("127.0.0.1:8080");
+    let udp_sender_1 = UdpSender::new("127.0.0.1:0", "127.0.0.1:9090");
+    let udp_sender_2 = UdpSender::<MyPacket>::new("127.0.0.1:0", "127.0.0.1:9091");
 
-    let value = 6.0;
+    let fft = FFT::new(2000);
+    let inverse_fft = InverseFFT::new(2000);
 
-    let sin: Lambdaer<MyPacket, MyPacket> =
-        Lambdaer::new(move |x: MyPacket| MyPacket(x.0.sin() + value));
+    udp_receiver.output.connect(&udp_sender_1.input);
 
-    let downsampler = Downsampler::new(5000);
-    let console_printer = ConsolePrinter::new();
-    let udp_sender = UdpSender::new("127.0.0.1:0", "127.0.0.1:9090");
+    udp_receiver.output.connect(&fft.input);
+    fft.output.connect(&inverse_fft.input);
 
-    sample_generator.output.connect(&sin.input);
+    inverse_fft.output.connect(&udp_sender_2.input);
 
-    sin.output.connect(&downsampler.input);
-    downsampler.output.connect(&console_printer.input);
-
-    sin.output.connect(&udp_sender.input);
-
-    pipeline![
-        sample_generator,
-        downsampler,
-        sin,
-        console_printer,
-        udp_sender
-    ]
-    .run();
+    pipeline![udp_receiver, udp_sender_1, udp_sender_2, fft, inverse_fft].run();
 }
 
-#[derive(Clone, Copy, Norm)]
+#[derive(Clone)]
 struct MyPacket(f32);
 
-impl Sample for MyPacket {
-    fn sample(sample_rate: usize, current_sample: usize) -> Self {
-        MyPacket(f32::sample(sample_rate, current_sample))
+impl From<MyPacket> for f32 {
+    fn from(packet: MyPacket) -> Self {
+        packet.0
     }
 }
 
-impl Sin for MyPacket {
-    type Output = Self;
+impl From<f32> for MyPacket {
+    fn from(value: f32) -> Self {
+        Self(value)
+    }
+}
 
-    fn sin(self) -> Self {
-        MyPacket(self.0.sin())
+impl UdpDeserializer for MyPacket {
+    fn max_packet_size() -> usize {
+        size_of::<f32>()
+    }
+
+    fn deserialize_packet(bytes: &[u8]) -> Self {
+        Self(f32::from_ne_bytes(bytes.try_into().unwrap()))
     }
 }
 
 impl UdpSerializer for MyPacket {
     fn serialize_packet(self) -> Vec<u8> {
         self.0.to_ne_bytes().to_vec()
-    }
-}
-
-impl Display for MyPacket {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
