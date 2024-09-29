@@ -1,4 +1,5 @@
 pub use crate::{
+    audio::{player::AudioPlayer, recorder::AudioRecorder},
     io::{ConsolePrinter, UdpDeserializer, UdpReceiver, UdpSender, UdpSerializer},
     math::{
         arihtmetic::{
