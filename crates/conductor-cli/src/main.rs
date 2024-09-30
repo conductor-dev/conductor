@@ -1,33 +1,46 @@
 use conductor::prelude::*;
-use std::fmt::Display;
 
 fn main() {
-    let file_reader = FileReader::<MyPacket>::new("./output.csv");
-    let lambda = Lambdaer::new(|x: MyPacket| x.0);
-    let audio_player = AudioPlayer::new();
+    let frequency = Immediate::new(4000.0);
+    let amplitude = Immediate::new(0.2);
 
-    file_reader.output.connect(&lambda.input);
-    lambda.output.connect(&audio_player.input);
+    let sample_generator = SampleGenerator::<f32>::new();
+    let multiplier_1 = Multiplier::new();
+    let sin = Siner::new();
+    let multiplier_2 = Multiplier::new();
+    let player = AudioPlayer::new();
+    let lambda = Lambdaer::new(|x: f32| MyPacket(x));
+    let udp_sender = UdpSender::<MyPacket>::new("127.0.0.1:0", "127.0.0.1:8080");
 
-    pipeline![file_reader, audio_player, lambda].run();
+    sample_generator.output.connect(&multiplier_1.input1);
+    frequency.output.connect(&multiplier_1.input2);
+    multiplier_1.output.connect(&sin.input);
+    sin.output.connect(&multiplier_2.input1);
+    amplitude.output.connect(&multiplier_2.input2);
+    multiplier_2.output.connect(&player.input);
+    player.sample_rate.connect(&sample_generator.sample_rate);
+    multiplier_2.output.connect(&lambda.input);
+    lambda.output.connect(&udp_sender.input);
+
+    pipeline![
+        sample_generator,
+        frequency,
+        multiplier_1,
+        multiplier_2,
+        amplitude,
+        sin,
+        player,
+        lambda,
+        udp_sender
+    ]
+    .run();
 }
 
 #[derive(Clone)]
 struct MyPacket(f32);
 
-impl From<String> for MyPacket {
-    fn from(s: String) -> Self {
-        MyPacket(s.parse().unwrap())
-    }
-}
-
-impl Sample for MyPacket {
-    fn sample(sample_rate: usize, current_sample: usize) -> Self {
-        MyPacket(f32::sample(sample_rate, current_sample))
-    }
-}
-impl Display for MyPacket {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+impl UdpSerializer for MyPacket {
+    fn serialize_packet(self) -> Vec<u8> {
+        self.0.to_ne_bytes().to_vec()
     }
 }

@@ -43,7 +43,7 @@ impl<O: Sample + Clone> NodeRunner for SampleGeneratorRunner<O> {
 
 pub struct SampleGenerator<O: Sample + Clone> {
     pub output: NodeConfigOutputPort<O>,
-    sample_rate: NodeConfigInputPort<usize>,
+    pub sample_rate: NodeConfigInputPort<usize>,
 }
 
 impl<O: Sample + Clone> SampleGenerator<O> {
