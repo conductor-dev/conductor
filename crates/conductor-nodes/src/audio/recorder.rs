@@ -2,18 +2,24 @@ use conductor_core::{
     ports::{NodeConfigOutputPort, NodeRunnerOutputPort},
     NodeConfig, NodeRunner,
 };
-use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::{
+    traits::{DeviceTrait, HostTrait, StreamTrait},
+    StreamConfig,
+};
 use std::thread;
 
 struct AudioRecorderRunner {
     output: NodeRunnerOutputPort<f32>,
+    sample_rate: NodeRunnerOutputPort<usize>,
 }
 
 impl NodeRunner for AudioRecorderRunner {
     fn run(self: Box<Self>) {
         let host = cpal::default_host();
         let input_device = host.default_input_device().unwrap();
-        let config = input_device.default_input_config().unwrap().into();
+        let config: StreamConfig = input_device.default_input_config().unwrap().into();
+
+        self.sample_rate.send(&(config.sample_rate.0 as usize));
 
         let stream = input_device
             .build_input_stream(
@@ -43,12 +49,14 @@ impl NodeRunner for AudioRecorderRunner {
 
 pub struct AudioRecorder {
     pub output: NodeConfigOutputPort<f32>,
+    pub sample_rate: NodeConfigOutputPort<usize>,
 }
 
 impl AudioRecorder {
     pub fn new() -> Self {
         Self {
             output: NodeConfigOutputPort::new(),
+            sample_rate: NodeConfigOutputPort::new(),
         }
     }
 }
@@ -64,6 +72,7 @@ impl NodeConfig for AudioRecorder {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         Box::new(AudioRecorderRunner {
             output: self.output.into(),
+            sample_rate: self.sample_rate.into(),
         })
     }
 }
