@@ -1,5 +1,5 @@
 use conductor_core::{
-    ports::{NodeConfigOutputPort, NodeRunnerOutputPort},
+    ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
     timer::set_interval,
     NodeConfig, NodeRunner,
 };
@@ -23,17 +23,18 @@ impl Sample for f32 {
 
 struct SampleGeneratorRunner<O: Sample + Clone> {
     output: NodeRunnerOutputPort<O>,
-    sample_rate: usize,
+    sample_rate: NodeRunnerInputPort<usize>,
 }
 
 impl<O: Sample + Clone> NodeRunner for SampleGeneratorRunner<O> {
     fn run(self: Box<Self>) {
+        let sample_rate = self.sample_rate.recv().unwrap();
+
         let mut current_sample = 0;
-        let seconds_per_sample = Duration::from_secs_f64(1.0 / (self.sample_rate as f64));
+        let seconds_per_sample = Duration::from_secs_f64(1.0 / (sample_rate as f64));
 
         set_interval(seconds_per_sample, || {
-            self.output
-                .send(&O::sample(self.sample_rate, current_sample));
+            self.output.send(&O::sample(sample_rate, current_sample));
 
             current_sample += 1;
         })
@@ -42,15 +43,21 @@ impl<O: Sample + Clone> NodeRunner for SampleGeneratorRunner<O> {
 
 pub struct SampleGenerator<O: Sample + Clone> {
     pub output: NodeConfigOutputPort<O>,
-    sample_rate: usize,
+    sample_rate: NodeConfigInputPort<usize>,
 }
 
 impl<O: Sample + Clone> SampleGenerator<O> {
-    pub fn new(sample_rate: usize) -> Self {
+    pub fn new() -> Self {
         Self {
             output: NodeConfigOutputPort::new(),
-            sample_rate,
+            sample_rate: NodeConfigInputPort::new(),
         }
+    }
+}
+
+impl<O: Sample + Clone> Default for SampleGenerator<O> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -58,7 +65,7 @@ impl<O: Sample + Clone + Send + 'static> NodeConfig for SampleGenerator<O> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         Box::new(SampleGeneratorRunner {
             output: self.output.into(),
-            sample_rate: self.sample_rate,
+            sample_rate: self.sample_rate.into(),
         })
     }
 }

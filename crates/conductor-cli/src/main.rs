@@ -8,16 +8,28 @@ fn main() {
     let recorder = AudioRecorder::new();
     let player = AudioPlayer::new();
 
+    let immediate = Immediate::new(5.0);
+    let multiply = Multiplier::new();
+
     let downsampler = Downsampler::new(5000);
     let console_printer = ConsolePrinter::new();
     let lambda = Lambdaer::new(|x: f32| MyPacket(x));
     let udp_sender = UdpSender::new("127.0.0.1:0", "127.0.0.1:9090");
 
-    recorder.output.connect(&downsampler.input);
+    let fft = FFT::new(1024);
+    let inverse_fft = InverseFFT::new(1024);
+
+    immediate.output.connect(&multiply.input1);
+    recorder.output.connect(&multiply.input2);
+
+    multiply.output.connect(&downsampler.input);
     downsampler.output.connect(&console_printer.input);
 
-    recorder.output.connect(&lambda.input);
-    recorder.output.connect(&player.input);
+    multiply.output.connect(&fft.input);
+    fft.output.connect(&inverse_fft.input);
+
+    inverse_fft.output.connect(&lambda.input);
+    inverse_fft.output.connect(&player.input);
     lambda.output.connect(&udp_sender.input);
 
     pipeline![
@@ -26,7 +38,11 @@ fn main() {
         player,
         lambda,
         console_printer,
-        udp_sender
+        udp_sender,
+        fft,
+        inverse_fft,
+        multiply,
+        immediate
     ]
     .run();
 }
