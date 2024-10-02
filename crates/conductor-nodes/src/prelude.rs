@@ -16,6 +16,6 @@ pub use crate::{
     misc::{Downsampler, Lambdaer, Pass, Sample, SampleGenerator},
     signal_processing::{
         fft::{InverseFFT, FFT},
-        filter::BandpassFilter,
+        filter::{BandpassFilter, LowpassFilter},
     },
 };

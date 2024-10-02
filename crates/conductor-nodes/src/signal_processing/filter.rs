@@ -86,3 +86,61 @@ impl NodeConfig for BandpassFilter {
         })
     }
 }
+
+struct LowpassFilterRunner {
+    input: NodeRunnerInputPort<FFTPacket>,
+    sample_rate: NodeRunnerInputPort<usize>,
+    output: NodeRunnerOutputPort<FFTPacket>,
+    frequency: f32,
+}
+
+impl NodeRunner for LowpassFilterRunner {
+    fn run(self: Box<Self>) {
+        let sample_rate = self.sample_rate.recv().unwrap();
+
+        loop {
+            let mut input = self.input.recv().unwrap();
+
+            let full_size = input.len();
+            let half_size = input.len() / 2;
+
+            let cutoff_index = ((self.frequency * full_size as f32) / sample_rate as f32) as usize;
+
+            for value in input.iter_mut().skip(cutoff_index).take(half_size) {
+                *value = Complex::new(0.0, 0.0);
+            }
+
+            self.output.send(&input);
+        }
+    }
+}
+
+pub struct LowpassFilter {
+    pub input: NodeConfigInputPort<FFTPacket>,
+    pub sample_rate: NodeConfigInputPort<usize>,
+    pub output: NodeConfigOutputPort<FFTPacket>,
+    frequency: f32,
+}
+
+impl LowpassFilter {
+    pub fn new(frequency: f32) -> Self {
+        Self {
+            input: NodeConfigInputPort::new(),
+            sample_rate: NodeConfigInputPort::new(),
+            output: NodeConfigOutputPort::new(),
+            frequency,
+        }
+    }
+}
+
+// TODO: Can + Send + 'static be removed?
+impl NodeConfig for LowpassFilter {
+    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
+        Box::new(LowpassFilterRunner {
+            input: self.input.into(),
+            sample_rate: self.sample_rate.into(),
+            output: self.output.into(),
+            frequency: self.frequency,
+        })
+    }
+}
