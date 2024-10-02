@@ -1,8 +1,10 @@
 pub use crate::{
     audio::{player::AudioPlayer, recorder::AudioRecorder},
     io::{
-        ConsolePrinter, FileReader, FileWriter, UdpDeserializer, UdpReceiver, UdpSender,
-        UdpSerializer,
+        file::{FileReader, FileWriter},
+        print::ConsolePrinter,
+        udp::{UdpDeserializer, UdpReceiver},
+        udp::{UdpSender, UdpSerializer},
     },
     math::{
         arihtmetic::{
@@ -14,5 +16,11 @@ pub use crate::{
         norm::{Norm, Normer},
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
     },
-    misc::{Downsampler, Intoer, Lambdaer, Pass, Sample, SampleGenerator},
+    misc::{
+        downsampler::Downsampler,
+        into::Intoer,
+        lambda::Lambdaer,
+        pass::Pass,
+        sample_generator::{Sample, SampleGenerator},
+    },
 };
