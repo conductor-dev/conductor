@@ -1,46 +1,20 @@
 use conductor::prelude::*;
 
 fn main() {
-    let frequency = Immediate::new(4000.0);
-    let amplitude = Immediate::new(0.2);
-
-    let sample_generator = SampleGenerator::<f32>::new();
-    let multiplier_1 = Multiplier::new();
-    let sin = Siner::new();
-    let multiplier_2 = Multiplier::new();
+    let recorder = AudioRecorder::new();
     let player = AudioPlayer::new();
-    let lambda = Lambdaer::new(|x: f32| MyPacket(x));
-    let udp_sender = UdpSender::<MyPacket>::new("127.0.0.1:0", "127.0.0.1:8080");
+    let fft = FFT::new(512);
+    let band_pass = BandpassFilter::new(3000.0, 11_000.0);
+    let inverse_fft = InverseFFT::new(512);
+    let writer = FileWriter::new("./output.wav");
 
-    sample_generator.output.connect(&multiplier_1.input1);
-    frequency.output.connect(&multiplier_1.input2);
-    multiplier_1.output.connect(&sin.input);
-    sin.output.connect(&multiplier_2.input1);
-    amplitude.output.connect(&multiplier_2.input2);
-    multiplier_2.output.connect(&player.input);
-    player.sample_rate.connect(&sample_generator.sample_rate);
-    multiplier_2.output.connect(&lambda.input);
-    lambda.output.connect(&udp_sender.input);
+    recorder.sample_rate.connect(&band_pass.sample_rate);
 
-    pipeline![
-        sample_generator,
-        frequency,
-        multiplier_1,
-        multiplier_2,
-        amplitude,
-        sin,
-        player,
-        lambda,
-        udp_sender
-    ]
-    .run();
-}
+    recorder.output.connect(&fft.input);
+    fft.output.connect(&band_pass.input);
+    band_pass.output.connect(&inverse_fft.input);
+    inverse_fft.output.connect(&player.input);
+    inverse_fft.output.connect(&writer.input);
 
-#[derive(Clone)]
-struct MyPacket(f32);
-
-impl UdpSerializer for MyPacket {
-    fn serialize_packet(self) -> Vec<u8> {
-        self.0.to_ne_bytes().to_vec()
-    }
+    pipeline![recorder, player, fft, band_pass, inverse_fft, writer].run();
 }

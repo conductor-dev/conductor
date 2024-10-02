@@ -14,5 +14,8 @@ pub use crate::{
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
     },
     misc::{Downsampler, Lambdaer, Pass, Sample, SampleGenerator},
-    signal_processing::fft::{InverseFFT, FFT},
+    signal_processing::{
+        fft::{InverseFFT, FFT},
+        filter::BandpassFilter,
+    },
 };
