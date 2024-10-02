@@ -14,5 +14,5 @@ pub use crate::{
         norm::{Norm, Normer},
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
     },
-    misc::{Downsampler, Lambdaer, Pass, Sample, SampleGenerator},
+    misc::{Downsampler, Intoer, Lambdaer, Pass, Sample, SampleGenerator},
 };
