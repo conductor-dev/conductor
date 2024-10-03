@@ -1,52 +1,59 @@
 use conductor::prelude::*;
+use std::fmt::Display;
 
 fn main() {
-    let frequency = Immediate::new(4000.0);
-    let amplitude = Immediate::new(0.2);
+    // let sample_generator = SampleGenerator::<MyPacket>::new(31250);
+    // let normer = Normer::new();
 
-    let sample_generator = SampleGenerator::<f32>::new();
-    let multiplier_1 = Multiplier::new();
-    let sin = Siner::new();
-    let multiplier_2 = Multiplier::new();
+    let recorder = AudioRecorder::new();
     let player = AudioPlayer::new();
-    let into = Intoer::new();
-    let udp_sender = UdpSender::<MyPacket>::new("127.0.0.1:0", "127.0.0.1:8080");
+    let lambda = Lambdaer::new(|x: f32| MyPacket(x));
+    let resampler = Resampler::new();
 
-    sample_generator.output.connect(&multiplier_1.input1);
-    frequency.output.connect(&multiplier_1.input2);
-    multiplier_1.output.connect(&sin.input);
-    sin.output.connect(&multiplier_2.input1);
-    amplitude.output.connect(&multiplier_2.input2);
-    multiplier_2.output.connect(&player.input);
-    player.sample_rate.connect(&sample_generator.sample_rate);
-    multiplier_2.output.connect(&into.input);
-    into.output.connect(&udp_sender.input);
+    let immediate = Immediate::new(48000);
+    // immediate.output.connect(&resampler.input_sample_rate);
 
-    pipeline![
-        sample_generator,
-        frequency,
-        multiplier_1,
-        multiplier_2,
-        amplitude,
-        sin,
-        player,
-        into,
-        udp_sender
-    ]
-    .run();
+    recorder.sample_rate.connect(&resampler.input_sample_rate);
+    player.sample_rate.connect(&resampler.output_sample_rate);
+
+    // recorder.output.connect(&lambda.input);
+    recorder.output.connect(&resampler.input);
+    resampler.output.connect(&player.input);
+
+    pipeline![recorder, player, lambda, resampler, immediate].run();
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Norm)]
 struct MyPacket(f32);
 
-impl From<f32> for MyPacket {
-    fn from(value: f32) -> Self {
-        Self(value)
+impl Sample for MyPacket {
+    fn sample(sample_rate: usize, current_sample: usize) -> Self {
+        MyPacket(f32::sample(sample_rate, current_sample))
+    }
+}
+
+impl Sin for MyPacket {
+    type Output = Self;
+
+    fn sin(self) -> Self {
+        MyPacket(self.0.sin())
     }
 }
 
 impl UdpSerializer for MyPacket {
     fn serialize_packet(self) -> Vec<u8> {
         self.0.to_ne_bytes().to_vec()
+    }
+}
+
+// impl UdpSerializer for MyPacket {
+//     fn serialize_packet(self) -> Vec<u8> {
+//         self.0.to_ne_bytes().to_vec()
+//     }
+// }
+
+impl Display for MyPacket {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
