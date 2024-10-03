@@ -21,6 +21,7 @@ pub use crate::{
         into::Intoer,
         lambda::Lambdaer,
         pass::Pass,
+        resampler::Resampler,
         sample_generator::{Sample, SampleGenerator},
     },
 };
