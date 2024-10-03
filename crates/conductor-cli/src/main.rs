@@ -9,7 +9,7 @@ fn main() {
     let sin = Siner::new();
     let multiplier_2 = Multiplier::new();
     let player = AudioPlayer::new();
-    let lambda = Lambdaer::new(|x: f32| MyPacket(x));
+    let into = Intoer::new();
     let udp_sender = UdpSender::<MyPacket>::new("127.0.0.1:0", "127.0.0.1:8080");
 
     sample_generator.output.connect(&multiplier_1.input1);
@@ -19,8 +19,8 @@ fn main() {
     amplitude.output.connect(&multiplier_2.input2);
     multiplier_2.output.connect(&player.input);
     player.sample_rate.connect(&sample_generator.sample_rate);
-    multiplier_2.output.connect(&lambda.input);
-    lambda.output.connect(&udp_sender.input);
+    multiplier_2.output.connect(&into.input);
+    into.output.connect(&udp_sender.input);
 
     pipeline![
         sample_generator,
@@ -30,7 +30,7 @@ fn main() {
         amplitude,
         sin,
         player,
-        lambda,
+        into,
         udp_sender
     ]
     .run();
@@ -38,6 +38,12 @@ fn main() {
 
 #[derive(Clone)]
 struct MyPacket(f32);
+
+impl From<f32> for MyPacket {
+    fn from(value: f32) -> Self {
+        Self(value)
+    }
+}
 
 impl UdpSerializer for MyPacket {
     fn serialize_packet(self) -> Vec<u8> {
