@@ -1,6 +1,6 @@
 pub use crate::receive;
 use crossbeam_channel::{Receiver, RecvError, Select, SelectedOperation, Sender, TryRecvError};
-use std::{cell::RefCell, rc::Rc};
+use std::sync::{Arc, RwLock};
 
 /// ```ignore
 /// use conductor::prelude::*;
@@ -98,7 +98,7 @@ impl<T> Default for NodeRunnerInputPort<T> {
     }
 }
 
-pub struct NodeConfigInputPort<T>(Rc<RefCell<NodeRunnerInputPort<T>>>);
+pub struct NodeConfigInputPort<T>(Arc<RwLock<NodeRunnerInputPort<T>>>);
 
 impl<T> Clone for NodeConfigInputPort<T> {
     fn clone(&self) -> Self {
@@ -108,8 +108,8 @@ impl<T> Clone for NodeConfigInputPort<T> {
 
 impl<T> From<NodeConfigInputPort<T>> for NodeRunnerInputPort<T> {
     fn from(cell: NodeConfigInputPort<T>) -> Self {
-        match Rc::try_unwrap(cell.0) {
-            Ok(inner) => inner.into_inner(),
+        match Arc::try_unwrap(cell.0) {
+            Ok(inner) => inner.into_inner().expect("poisoned lock"),
             Err(_) => unreachable!(),
         }
     }
@@ -117,7 +117,7 @@ impl<T> From<NodeConfigInputPort<T>> for NodeRunnerInputPort<T> {
 
 impl<T> NodeConfigInputPort<T> {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(NodeRunnerInputPort::new())))
+        Self(Arc::new(RwLock::new(NodeRunnerInputPort::new())))
     }
 }
 
@@ -149,7 +149,7 @@ impl<T: Clone> Default for NodeRunnerOutputPort<T> {
     }
 }
 
-pub struct NodeConfigOutputPort<T: Clone>(Rc<RefCell<NodeRunnerOutputPort<T>>>);
+pub struct NodeConfigOutputPort<T: Clone>(Arc<RwLock<NodeRunnerOutputPort<T>>>);
 
 impl<T: Clone> Clone for NodeConfigOutputPort<T> {
     fn clone(&self) -> Self {
@@ -159,8 +159,8 @@ impl<T: Clone> Clone for NodeConfigOutputPort<T> {
 
 impl<T: Clone> From<NodeConfigOutputPort<T>> for NodeRunnerOutputPort<T> {
     fn from(cell: NodeConfigOutputPort<T>) -> Self {
-        match Rc::try_unwrap(cell.0) {
-            Ok(inner) => inner.into_inner(),
+        match Arc::try_unwrap(cell.0) {
+            Ok(inner) => inner.into_inner().expect("poisoned lock"),
             Err(_) => unreachable!(),
         }
     }
@@ -168,11 +168,15 @@ impl<T: Clone> From<NodeConfigOutputPort<T>> for NodeRunnerOutputPort<T> {
 
 impl<T: Clone> NodeConfigOutputPort<T> {
     pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(NodeRunnerOutputPort::new())))
+        Self(Arc::new(RwLock::new(NodeRunnerOutputPort::new())))
     }
 
     pub fn connect(&self, input: &NodeConfigInputPort<T>) {
-        self.0.borrow_mut().tx.push(input.0.borrow().tx.clone());
+        self.0
+            .write()
+            .expect("poisoned lock")
+            .tx
+            .push(input.0.read().expect("poisoned lock").tx.clone());
     }
 }
 
