@@ -45,7 +45,7 @@ impl App {
     fn _plot_points(&self) -> PlotPoints {
         let data = self.data.read().unwrap();
         PlotPoints::from_iter(
-            RisingEdgeTrigger::new(data.iter().map(|v| *v as f64))
+            RisingEdgeTrigger::new(data.iter().map(|v| *v as f64), 0.0) // TODO: make threshold configurable
                 .enumerate()
                 .map(|(i, v)| [i as f64, v])
                 .take(data.len() / 2), // TODO: make this configurable

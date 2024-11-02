@@ -1,39 +1,44 @@
-pub struct RisingEdgeTrigger<I> {
+pub struct RisingEdgeTrigger<I, T>
+where
+    I: Iterator<Item = T>,
+    T: PartialOrd + Copy,
+{
     iter: I,
-    prev_value: Option<f64>,
+    threshold: T,
+    prev_value: Option<T>,
     triggered: bool,
 }
 
-impl<I> RisingEdgeTrigger<I>
+impl<I, T> RisingEdgeTrigger<I, T>
 where
-    I: Iterator<Item = f64>,
+    I: Iterator<Item = T>,
+    T: PartialOrd + Copy,
 {
-    pub fn new(iter: I) -> Self {
+    pub fn new(iter: I, threshold: T) -> Self {
         RisingEdgeTrigger {
             iter,
+            threshold,
             prev_value: None,
             triggered: false,
         }
     }
 }
 
-impl<I> Iterator for RisingEdgeTrigger<I>
+impl<I, T> Iterator for RisingEdgeTrigger<I, T>
 where
-    I: Iterator<Item = f64>,
+    I: Iterator<Item = T>,
+    T: PartialOrd + Copy,
 {
-    type Item = f64;
+    type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.triggered {
             return self.iter.next();
         }
 
-        // TODO: make this configurable
-        let threshold = 0.0;
-
         while let Some(current_value) = self.iter.next() {
             if let Some(prev_value) = self.prev_value {
-                if current_value > threshold && prev_value <= threshold {
+                if current_value > self.threshold && prev_value <= self.threshold {
                     self.triggered = true;
                     self.prev_value = Some(current_value);
                     return Some(current_value);
