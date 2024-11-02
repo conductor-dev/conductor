@@ -50,3 +50,21 @@ where
         None
     }
 }
+
+pub trait RisingEdgeTriggerExt<I, T>: Iterator<Item = T>
+where
+    I: Iterator<Item = T>,
+    T: PartialOrd + Copy,
+{
+    fn rising_edge_trigger(self, threshold: T) -> RisingEdgeTrigger<I, T>;
+}
+
+impl<I, T> RisingEdgeTriggerExt<I, T> for I
+where
+    I: Iterator<Item = T>,
+    T: PartialOrd + Copy,
+{
+    fn rising_edge_trigger(self, threshold: T) -> RisingEdgeTrigger<I, T> {
+        RisingEdgeTrigger::new(self, threshold)
+    }
+}
