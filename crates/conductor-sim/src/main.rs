@@ -12,6 +12,6 @@ fn main() -> ConductorSimResult<()> {
 
     match args.command {
         Command::PeakVoltmeter(cmd) => voltmeter::voltmeter(cmd),
-        Command::Plotter(cmd) => plotter::plotter(cmd),
+        Command::Plotter(cmd) => plotter::app::plotter(cmd),
     }
 }

@@ -1,3 +1,4 @@
+use super::trigger::RisingEdgeTrigger;
 use crate::{args::PlotterCommand, error::ConductorSimResult};
 use conductor_core::buffer::CircularBuffer;
 use egui::{Color32, ScrollArea};
@@ -42,13 +43,12 @@ impl App {
     }
 
     fn _plot_points(&self) -> PlotPoints {
+        let data = self.data.read().unwrap();
         PlotPoints::from_iter(
-            self.data
-                .read()
-                .unwrap()
-                .iter()
+            RisingEdgeTrigger::new(data.iter().map(|v| *v as f64))
                 .enumerate()
-                .map(|(i, v)| [i as f64, *v as f64]),
+                .map(|(i, v)| [i as f64, v])
+                .take(data.len() / 2), // TODO: make this configurable
         )
     }
 
