@@ -1,13 +1,10 @@
-.PHONY = run run-sim build clean format lint test
+.PHONY = run build clean format lint test
 
 run:
 	cargo run
 
 build:
 	cargo build
-
-build-sim:
-	cargo build --package conductor-sim
 
 clean:
 	rm -rf target
