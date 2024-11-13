@@ -1,5 +1,6 @@
 use std::collections::{vec_deque::Iter, VecDeque};
 
+#[derive(Clone, Debug)]
 pub struct CircularBuffer<T> {
     size: usize,
     buffer: VecDeque<T>,
