@@ -6,6 +6,34 @@ pub struct CircularBuffer<T> {
     buffer: VecDeque<T>,
 }
 
+impl<T> From<CircularBuffer<T>> for Vec<T> {
+    fn from(buffer: CircularBuffer<T>) -> Self {
+        buffer.buffer.into()
+    }
+}
+
+impl<T> From<CircularBuffer<T>> for VecDeque<T> {
+    fn from(buffer: CircularBuffer<T>) -> Self {
+        buffer.buffer
+    }
+}
+
+impl<T> From<Vec<T>> for CircularBuffer<T> {
+    fn from(vec: Vec<T>) -> Self {
+        Self {
+            size: vec.len(),
+            buffer: vec.into(),
+        }
+    }
+}
+
+impl<T> From<VecDeque<T>> for CircularBuffer<T> {
+    fn from(vec: VecDeque<T>) -> Self {
+        let size = vec.len();
+        Self { size, buffer: vec }
+    }
+}
+
 impl<T> CircularBuffer<T> {
     pub fn new(size: usize) -> Self {
         Self {
