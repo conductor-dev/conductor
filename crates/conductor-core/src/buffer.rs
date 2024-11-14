@@ -50,6 +50,16 @@ impl<T> CircularBuffer<T> {
         self.buffer.push_back(item);
     }
 
+    pub fn resize(&mut self, new_size: usize) {
+        if new_size < self.buffer.len() {
+            self.buffer.drain(0..self.buffer.len() - new_size);
+        } else {
+            self.buffer.reserve(new_size - self.buffer.len());
+        }
+
+        self.size = new_size;
+    }
+
     pub fn iter(&self) -> Iter<T> {
         self.buffer.iter()
     }

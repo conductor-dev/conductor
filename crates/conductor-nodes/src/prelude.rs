@@ -17,6 +17,7 @@ pub use crate::{
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
     },
     misc::{
+        buffer::Buffer,
         downsampler::Downsampler,
         into::Intoer,
         lambda::Lambdaer,

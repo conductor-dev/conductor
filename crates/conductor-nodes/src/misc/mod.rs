@@ -1,3 +1,4 @@
+pub mod buffer;
 pub mod downsampler;
 pub mod into;
 pub mod lambda;
