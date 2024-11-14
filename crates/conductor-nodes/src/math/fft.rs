@@ -1,5 +1,4 @@
 use conductor_core::{
-    buffer::CircularBuffer,
     ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
     NodeConfig, NodeRunner,
 };
@@ -9,128 +8,138 @@ use std::sync::Arc;
 pub type FFTPacket = Vec<Complex<f32>>;
 
 struct FFTRunner<T: Into<f32>> {
-    buffer: CircularBuffer<f32>,
-    fft: Arc<dyn Fft<f32>>,
-    scratch: Vec<Complex<f32>>,
-
-    input: NodeRunnerInputPort<T>,
+    input: NodeRunnerInputPort<Vec<T>>,
     output: NodeRunnerOutputPort<FFTPacket>,
 }
 
-impl<T: Into<f32>> FFTRunner<T> {
-    #[inline]
-    fn compute_fft(&mut self) -> Vec<Complex<f32>> {
-        let mut input = self
-            .buffer
-            .iter()
-            .map(|x| Complex::new(*x, 0.0))
-            .collect::<Vec<_>>();
-
-        self.fft.process_with_scratch(&mut input, &mut self.scratch);
-
-        input
-            .into_iter()
-            .map(|x| x / self.buffer.len() as f32)
-            .collect()
-    }
-}
-
 impl<T: Into<f32>> NodeRunner for FFTRunner<T> {
-    fn run(mut self: Box<Self>) {
+    fn run(self: Box<Self>) {
+        fn compute_fft<T: Into<f32>>(
+            buffer: Vec<T>,
+            fft: &Arc<dyn Fft<f32>>,
+            scratch: &mut [Complex<f32>],
+        ) -> Vec<Complex<f32>> {
+            let buffer_length = buffer.len();
+
+            let mut input = buffer
+                .into_iter()
+                .map(|x| Complex::<f32>::new(x.into(), 0.0))
+                .collect::<Vec<_>>();
+
+            fft.process_with_scratch(&mut input, scratch);
+
+            input
+                .into_iter()
+                .map(|x| x / buffer_length as f32)
+                .collect()
+        }
+
+        let mut planner = FftPlanner::new();
+
+        let mut buffer = self.input.recv().unwrap();
+        let mut scratch = vec![Complex::default(); buffer.len()];
+
+        let mut fft = planner.plan_fft_forward(buffer.len());
+
         loop {
-            self.buffer.push(self.input.recv().unwrap().into());
+            let fft_output = compute_fft(buffer, &fft, &mut scratch);
 
-            if !self.buffer.is_filled() {
-                continue;
+            self.output.send(&fft_output);
+
+            buffer = self.input.recv().unwrap();
+
+            if fft.len() != buffer.len() {
+                fft = planner.plan_fft_forward(buffer.len());
+                scratch.resize(buffer.len(), Complex::default());
             }
-
-            let fft = self.compute_fft();
-
-            self.output.send(&fft);
         }
     }
 }
 
 pub struct FFT<T: Into<f32>> {
-    window_size: usize,
-    pub input: NodeConfigInputPort<T>,
+    pub input: NodeConfigInputPort<Vec<T>>,
     pub output: NodeConfigOutputPort<FFTPacket>,
 }
 
 impl<T: Into<f32>> FFT<T> {
-    pub fn new(window_size: usize) -> Self {
+    pub fn new() -> Self {
         Self {
-            window_size,
             input: NodeConfigInputPort::new(),
             output: NodeConfigOutputPort::new(),
         }
+    }
+}
+
+impl<T: Into<f32>> Default for FFT<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 // TODO: Can + Send + 'static be removed?
 impl<T: Into<f32> + Send + 'static> NodeConfig for FFT<T> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
-        let mut planner = FftPlanner::new();
-        let fft = planner.plan_fft_forward(self.window_size);
-
         Box::new(FFTRunner {
-            buffer: CircularBuffer::new(self.window_size),
-            fft,
-            scratch: vec![Complex::default(); self.window_size],
             input: self.input.into(),
             output: self.output.into(),
         })
     }
 }
 
-struct InverseFFTRunner<T: From<f32> + Clone> {
-    fft: Arc<dyn Fft<f32>>,
-    scratch: Vec<Complex<f32>>,
-
+struct InverseFFTRunner {
     input: NodeRunnerInputPort<FFTPacket>,
-    output: NodeRunnerOutputPort<T>,
+    output: NodeRunnerOutputPort<Vec<f32>>,
 }
 
-impl<T: From<f32> + Clone> NodeRunner for InverseFFTRunner<T> {
-    fn run(mut self: Box<Self>) {
+impl NodeRunner for InverseFFTRunner {
+    fn run(self: Box<Self>) {
+        let mut planner = FftPlanner::new();
+
+        let mut fft_input = self.input.recv().unwrap();
+        let mut scratch = vec![Complex::default(); fft_input.len()];
+
+        let mut fft = planner.plan_fft_inverse(fft_input.len());
+
         loop {
-            let mut fft = self.input.recv().unwrap();
+            fft.process_with_scratch(&mut fft_input, &mut scratch);
 
-            self.fft.process_with_scratch(&mut fft, &mut self.scratch);
+            let fft_output = fft_input.into_iter().map(|value| value.re).collect();
 
-            // TODO: Check if pop() is the right method to use here
-            let output = fft.pop().unwrap().re;
+            self.output.send(&fft_output);
 
-            self.output.send(&output.into());
+            fft_input = self.input.recv().unwrap();
+
+            if fft.len() != fft_input.len() {
+                fft = planner.plan_fft_inverse(fft_input.len());
+                scratch.resize(fft_input.len(), Complex::default());
+            }
         }
     }
 }
 
-pub struct InverseFFT<T: From<f32> + Clone> {
-    window_size: usize,
+pub struct InverseFFT {
     pub input: NodeConfigInputPort<FFTPacket>,
-    pub output: NodeConfigOutputPort<T>,
+    pub output: NodeConfigOutputPort<Vec<f32>>,
 }
 
-impl<T: From<f32> + Clone> InverseFFT<T> {
-    pub fn new(window_size: usize) -> Self {
+impl InverseFFT {
+    pub fn new() -> Self {
         Self {
-            window_size,
             input: NodeConfigInputPort::new(),
             output: NodeConfigOutputPort::new(),
         }
     }
 }
 
-// TODO: Can + Send + 'static be removed?
-impl<T: From<f32> + Clone + Send + 'static> NodeConfig for InverseFFT<T> {
-    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
-        let mut planner = FftPlanner::new();
-        let fft = planner.plan_fft_inverse(self.window_size);
+impl Default for InverseFFT {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
+impl NodeConfig for InverseFFT {
+    fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         Box::new(InverseFFTRunner {
-            fft,
-            scratch: vec![Complex::default(); self.window_size],
             input: self.input.into(),
             output: self.output.into(),
         })
