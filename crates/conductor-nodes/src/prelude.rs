@@ -11,7 +11,6 @@ pub use crate::{
             Adder, BitwiseAnder, BitwiseOrer, BitwiseXorer, Divider, LeftShiter, Multiplier,
             Negator, Noter, Remainder, RightShifter, Subtractor,
         },
-        fft::{window::Window, window::WindowType, InverseFFT, FFT},
         immediate::Immediate,
         norm::{Norm, Normer},
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
@@ -24,5 +23,10 @@ pub use crate::{
         pass::Pass,
         resampler::Resampler,
         sample_generator::{Sample, SampleGenerator},
+    },
+    signal_processing::{
+        fft::{InverseFFT, FFT},
+        filter::{BandpassFilter, HighpassFilter, LowpassFilter},
+        window::{Window, WindowType},
     },
 };
