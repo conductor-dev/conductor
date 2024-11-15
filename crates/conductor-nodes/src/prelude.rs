@@ -11,7 +11,7 @@ pub use crate::{
             Adder, BitwiseAnder, BitwiseOrer, BitwiseXorer, Divider, LeftShiter, Multiplier,
             Negator, Noter, Remainder, RightShifter, Subtractor,
         },
-        fft::{InverseFFT, FFT},
+        fft::{window::Window, window::WindowType, InverseFFT, FFT},
         immediate::Immediate,
         norm::{Norm, Normer},
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
