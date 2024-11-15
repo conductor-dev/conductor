@@ -119,6 +119,15 @@ impl<T> NodeConfigInputPort<T> {
     pub fn new() -> Self {
         Self(Arc::new(RwLock::new(NodeRunnerInputPort::new())))
     }
+
+    pub fn set_initial(&self, value: T) {
+        self.0
+            .write()
+            .expect("poisoned lock")
+            .tx
+            .send(value)
+            .unwrap();
+    }
 }
 
 impl<T> Default for NodeConfigInputPort<T> {
