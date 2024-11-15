@@ -1,3 +1,5 @@
+pub mod window;
+
 use conductor_core::{
     ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
     NodeConfig, NodeRunner,
