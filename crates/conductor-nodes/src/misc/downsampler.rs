@@ -1,43 +1,60 @@
 use conductor_core::{
     ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
-    NodeConfig, NodeRunner,
+    receive, NodeConfig, NodeRunner,
 };
 
 struct DownsamplerRunner<T: Clone> {
     input: NodeRunnerInputPort<T>,
+    factor: NodeRunnerInputPort<usize>,
+
     output: NodeRunnerOutputPort<T>,
-    factor: usize,
 }
 
 impl<T: Clone> NodeRunner for DownsamplerRunner<T> {
     fn run(self: Box<Self>) {
         let mut counter: usize = 0;
 
-        loop {
-            let value = self.input.recv().unwrap();
+        let mut factor = self.factor.recv().unwrap();
 
-            counter %= self.factor;
-            if counter == 0 {
-                self.output.send(&value);
-            }
-            counter += 1;
+        loop {
+            receive! {
+                (self.input): value => {
+                    counter %= factor;
+
+                    if counter == 0 {
+                        self.output.send(&value);
+                    }
+
+                    counter += 1;
+                },
+                (self.factor): new_factor => {
+                    factor = new_factor;
+                },
+            };
         }
     }
 }
 
 pub struct Downsampler<T: Clone> {
     pub input: NodeConfigInputPort<T>,
+    pub factor: NodeConfigInputPort<usize>,
+
     pub output: NodeConfigOutputPort<T>,
-    pub factor: usize,
 }
 
 impl<T: Clone> Downsampler<T> {
-    pub fn new(factor: usize) -> Self {
+    pub fn new() -> Self {
         Self {
-            input: NodeConfigInputPort::<T>::new(),
-            output: NodeConfigOutputPort::<T>::new(),
-            factor,
+            input: NodeConfigInputPort::new(),
+            factor: NodeConfigInputPort::new(),
+            output: NodeConfigOutputPort::new(),
         }
+    }
+}
+
+impl<T: Clone> Default for Downsampler<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -46,8 +63,8 @@ impl<T: Clone + Send + 'static> NodeConfig for Downsampler<T> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         Box::new(DownsamplerRunner {
             input: self.input.into(),
+            factor: self.factor.into(),
             output: self.output.into(),
-            factor: self.factor,
         })
     }
 }
