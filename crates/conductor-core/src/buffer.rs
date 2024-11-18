@@ -34,6 +34,15 @@ impl<T> From<VecDeque<T>> for CircularBuffer<T> {
     }
 }
 
+impl<T> IntoIterator for CircularBuffer<T> {
+    type Item = T;
+    type IntoIter = std::collections::vec_deque::IntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.buffer.into_iter()
+    }
+}
+
 impl<T> CircularBuffer<T> {
     pub fn new(size: usize) -> Self {
         Self {
