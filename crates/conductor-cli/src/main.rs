@@ -9,6 +9,8 @@ fn main() {
 
     let fft = FFT::new();
 
+    let band_pass = BandpassFilter::new(300.0, 3400.0);
+
     let inverse_fft = InverseFFT::new();
     let sample = Lambdaer::new(|x: Vec<f32>| x[x.len() / 2]);
 
@@ -21,7 +23,10 @@ fn main() {
 
     hann_window.output.connect(&fft.input);
 
-    fft.output.connect(&inverse_fft.input);
+    fft.output.connect(&band_pass.input);
+
+    recorder.sample_rate.connect(&band_pass.sample_rate);
+    band_pass.output.connect(&inverse_fft.input);
 
     inverse_fft.output.connect(&sample.input);
 
@@ -32,6 +37,7 @@ fn main() {
         buffer,
         hann_window,
         fft,
+        band_pass,
         inverse_fft,
         sample,
         player
