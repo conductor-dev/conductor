@@ -1,40 +1,22 @@
 use conductor::prelude::*;
 
 fn main() {
-    let recorder = AudioRecorder::new();
+    let sample_generator = SampleGenerator::<i32>::new();
+    sample_generator.sample_rate.set_initial(1);
 
-    let buffer = Buffer::new(false);
+    let less_than_equal = LessThanEqual::new();
+    less_than_equal.input2.set_initial(5);
 
-    let hann_window = Window::new(WindowType::Hann);
+    let gate = SynchronizedGate::new();
 
-    let fft = FFT::new();
+    let console = ConsolePrinter::new();
 
-    let inverse_fft = InverseFFT::new();
-    let sample = Lambdaer::new(|x: Vec<f32>| x[x.len() / 2]);
+    sample_generator.output.connect(&gate.input);
+    sample_generator.output.connect(&less_than_equal.input1);
 
-    let player = AudioPlayer::new();
+    less_than_equal.output.connect(&gate.condition);
 
-    recorder.output.connect(&buffer.input);
+    gate.output.connect(&console.input);
 
-    buffer.size.set_initial(512_usize);
-    buffer.output.connect(&hann_window.input);
-
-    hann_window.output.connect(&fft.input);
-
-    fft.output.connect(&inverse_fft.input);
-
-    inverse_fft.output.connect(&sample.input);
-
-    sample.output.connect(&player.input);
-
-    pipeline![
-        recorder,
-        buffer,
-        hann_window,
-        fft,
-        inverse_fft,
-        sample,
-        player
-    ]
-    .run();
+    pipeline![sample_generator, less_than_equal, gate, console].run();
 }

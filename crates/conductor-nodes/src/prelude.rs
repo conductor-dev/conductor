@@ -1,5 +1,9 @@
 pub use crate::{
     audio::{player::AudioPlayer, recorder::AudioRecorder},
+    control::{
+        comparison::{Equal, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, NotEqual},
+        multiplexing::{Gate, SynchronizedGate},
+    },
     io::{
         file::{FileReader, FileWriter},
         print::ConsolePrinter,
