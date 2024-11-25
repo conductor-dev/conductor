@@ -21,6 +21,18 @@ impl Sample for f32 {
     }
 }
 
+impl Sample for i64 {
+    fn sample(sample_rate: usize, current_sample: usize) -> Self {
+        (current_sample as i64) / (sample_rate as i64)
+    }
+}
+
+impl Sample for i32 {
+    fn sample(sample_rate: usize, current_sample: usize) -> Self {
+        (current_sample as i32) / (sample_rate as i32)
+    }
+}
+
 struct SampleGeneratorRunner<O: Sample + Clone> {
     output: NodeRunnerOutputPort<O>,
     sample_rate: NodeRunnerInputPort<usize>,
