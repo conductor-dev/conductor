@@ -1,40 +1,50 @@
 use conductor::prelude::*;
 
 fn main() {
-    let recorder = AudioRecorder::new();
+    let sample_generator = SampleGenerator::<i32>::new(0);
+    sample_generator.sample_rate.set_initial(4400000);
+    sample_generator.step.set_initial(1);
 
-    let buffer = Buffer::new(false);
+    let less_than_equal = LessThanEqual::new();
+    less_than_equal.input2.set_initial(1000);
 
-    let hann_window = Window::new(WindowType::Hann);
+    let synchronize_gate = Synchronize::new();
 
-    let fft = FFT::new();
+    let gate = Gate::new();
+    gate.condition.set_kind(PortKind::LazyBuffer);
 
-    let inverse_fft = InverseFFT::new();
-    let sample = Lambdaer::new(|x: Vec<f32>| x[x.len() / 2]);
+    let synchronize_addition = Synchronize::new();
+    synchronize_addition.input1.set_initial(0);
 
-    let player = AudioPlayer::new();
+    let addition = Adder::new();
+    addition.input1.set_kind(PortKind::LazyBuffer);
 
-    recorder.output.connect(&buffer.input);
+    let console = ConsolePrinter::new();
 
-    buffer.size.set_initial(512_usize);
-    buffer.output.connect(&hann_window.input);
+    sample_generator.output.connect(&synchronize_gate.input2);
+    sample_generator.output.connect(&less_than_equal.input1);
 
-    hann_window.output.connect(&fft.input);
+    less_than_equal.output.connect(&synchronize_gate.input1);
 
-    fft.output.connect(&inverse_fft.input);
+    synchronize_gate.output1.connect(&gate.condition);
+    synchronize_gate.output2.connect(&gate.input);
 
-    inverse_fft.output.connect(&sample.input);
+    gate.output.connect(&synchronize_addition.input2);
 
-    sample.output.connect(&player.input);
+    synchronize_addition.output1.connect(&addition.input1);
+    synchronize_addition.output2.connect(&addition.input2);
+
+    addition.output.connect(&synchronize_addition.input1);
+    addition.output.connect(&console.input);
 
     pipeline![
-        recorder,
-        buffer,
-        hann_window,
-        fft,
-        inverse_fft,
-        sample,
-        player
+        sample_generator,
+        less_than_equal,
+        synchronize_gate,
+        gate,
+        synchronize_addition,
+        addition,
+        console
     ]
     .run();
 }

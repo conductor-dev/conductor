@@ -19,7 +19,9 @@ macro_rules! receive {
         {
             let mut multi_receiver = $crate::ports::MultiReceiver::new();
             $(
-                multi_receiver.recv(&$port);
+                if let $crate::ports::PortKind::Eager = $port.kind() {
+                    multi_receiver.recv(&$port);
+                }
             )*
 
             // TODO: This is really ugly. The counter could probably be removed by turning this into a recursive macro.
@@ -29,14 +31,27 @@ macro_rules! receive {
                 let mut counter = 0;
 
                 $(
-                    if index == counter {
-                        let $msg = $port.recv_select(oper).unwrap();
-                        break $output;
+                    if let $crate::ports::PortKind::LazyDrop = $port.kind() {
+                        if let Ok($msg) = $port.try_recv_last() {
+                           $output;
+                        }
                     }
-                    counter += 1;
+                    if let $crate::ports::PortKind::LazyBuffer = $port.kind() {
+                        if let Ok($msg) = $port.try_recv() {
+                           $output;
+                        }
+                    }
                 )*
-
-                unreachable!();
+                $(
+                    if let $crate::ports::PortKind::Eager = $port.kind() {
+                        if index == counter {
+                            let $msg = $port.recv_select(oper).unwrap();
+                            $output;
+                            break;
+                        }
+                        counter += 1;
+                    }
+                )*
             }
         }
     };
@@ -68,15 +83,35 @@ impl Default for MultiReceiver<'_> {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum PortKind {
+    Eager,
+    LazyDrop,
+    LazyBuffer,
+}
+
 pub struct NodeRunnerInputPort<T> {
     tx: Sender<T>,
     rx: Receiver<T>,
+    kind: PortKind,
 }
 
 impl<T> NodeRunnerInputPort<T> {
     pub fn new() -> Self {
         let (tx, rx) = crossbeam_channel::unbounded::<T>();
-        Self { tx, rx }
+        Self {
+            tx,
+            rx,
+            kind: PortKind::Eager,
+        }
+    }
+
+    pub fn try_recv_last(&self) -> Result<T, TryRecvError> {
+        let mut last = None;
+        while let Ok(value) = self.try_recv() {
+            last = Some(value);
+        }
+        last.ok_or(TryRecvError::Empty)
     }
 
     pub fn try_recv(&self) -> Result<T, TryRecvError> {
@@ -89,6 +124,10 @@ impl<T> NodeRunnerInputPort<T> {
 
     pub fn recv_select(&self, select: SelectedOperation) -> Result<T, RecvError> {
         select.recv(&self.rx)
+    }
+
+    pub fn kind(&self) -> PortKind {
+        self.kind
     }
 }
 
@@ -127,6 +166,10 @@ impl<T> NodeConfigInputPort<T> {
             .tx
             .send(value)
             .unwrap();
+    }
+
+    pub fn set_kind(&self, kind: PortKind) {
+        self.0.write().expect("poisoned lock").kind = kind;
     }
 }
 
