@@ -1,11 +1,12 @@
 use conductor::prelude::*;
 
 fn main() {
-    let sample_generator = SampleGenerator::<i32>::new();
-    sample_generator.sample_rate.set_initial(1);
+    let sample_generator = SampleGenerator::<i32>::new(0);
+    sample_generator.sample_rate.set_initial(4400);
+    sample_generator.step.set_initial(1);
 
     let less_than_equal = LessThanEqual::new();
-    less_than_equal.input2.set_initial(100);
+    less_than_equal.input2.set_initial(1000);
 
     let synchronize_gate = Synchronize::new();
 

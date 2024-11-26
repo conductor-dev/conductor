@@ -21,13 +21,7 @@ pub use crate::{
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
     },
     misc::{
-        buffer::Buffer,
-        downsampler::Downsampler,
-        into::Intoer,
-        lambda::Lambdaer,
-        pass::Pass,
-        resampler::Resampler,
-        sample_generator::{Sample, SampleGenerator},
-        synchronize::Synchronize,
+        buffer::Buffer, downsampler::Downsampler, into::Intoer, lambda::Lambdaer, pass::Pass,
+        resampler::Resampler, sample_generator::SampleGenerator, synchronize::Synchronize,
     },
 };

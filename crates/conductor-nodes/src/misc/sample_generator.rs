@@ -3,81 +3,59 @@ use conductor_core::{
     timer::set_interval,
     NodeConfig, NodeRunner,
 };
-use std::time::Duration;
+use std::{ops::Add, time::Duration};
 
-pub trait Sample {
-    fn sample(sample_rate: usize, current_sample: usize) -> Self;
-}
+struct SampleGeneratorRunner<O: Clone + Add<O, Output = O>> {
+    initial_value: O,
 
-impl Sample for f64 {
-    fn sample(sample_rate: usize, current_sample: usize) -> Self {
-        (current_sample as f64) / (sample_rate as f64)
-    }
-}
-
-impl Sample for f32 {
-    fn sample(sample_rate: usize, current_sample: usize) -> Self {
-        (current_sample as f32) / (sample_rate as f32)
-    }
-}
-
-impl Sample for i64 {
-    fn sample(sample_rate: usize, current_sample: usize) -> Self {
-        (current_sample as i64) / (sample_rate as i64)
-    }
-}
-
-impl Sample for i32 {
-    fn sample(sample_rate: usize, current_sample: usize) -> Self {
-        (current_sample as i32) / (sample_rate as i32)
-    }
-}
-
-struct SampleGeneratorRunner<O: Sample + Clone> {
     output: NodeRunnerOutputPort<O>,
     sample_rate: NodeRunnerInputPort<usize>,
+    step: NodeRunnerInputPort<O>,
 }
 
-impl<O: Sample + Clone> NodeRunner for SampleGeneratorRunner<O> {
+impl<O: Clone + Add<O, Output = O>> NodeRunner for SampleGeneratorRunner<O> {
     fn run(self: Box<Self>) {
         let sample_rate = self.sample_rate.recv().unwrap();
+        let step = self.step.recv().unwrap();
 
-        let mut current_sample = 0;
+        let mut current_value = self.initial_value;
         let seconds_per_sample = Duration::from_secs_f64(1.0 / (sample_rate as f64));
 
         set_interval(seconds_per_sample, || {
-            self.output.send(&O::sample(sample_rate, current_sample));
+            self.output.send(&current_value);
 
-            current_sample += 1;
+            current_value = current_value.clone() + step.clone();
         })
     }
 }
 
-pub struct SampleGenerator<O: Sample + Clone> {
+pub struct SampleGenerator<O: Clone + Add<O, Output = O>> {
+    initial_value: O,
+
     pub output: NodeConfigOutputPort<O>,
     pub sample_rate: NodeConfigInputPort<usize>,
+    pub step: NodeConfigInputPort<O>,
 }
 
-impl<O: Sample + Clone> SampleGenerator<O> {
-    pub fn new() -> Self {
+impl<O: Clone + Add<O, Output = O>> SampleGenerator<O> {
+    pub fn new(initial_value: O) -> Self {
         Self {
+            initial_value,
             output: NodeConfigOutputPort::new(),
             sample_rate: NodeConfigInputPort::new(),
+            step: NodeConfigInputPort::new(),
         }
     }
 }
 
-impl<O: Sample + Clone> Default for SampleGenerator<O> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<O: Sample + Clone + Send + 'static> NodeConfig for SampleGenerator<O> {
+impl<O: Clone + Add<O, Output = O> + Send + 'static> NodeConfig for SampleGenerator<O> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         Box::new(SampleGeneratorRunner {
+            initial_value: self.initial_value,
+
             output: self.output.into(),
             sample_rate: self.sample_rate.into(),
+            step: self.step.into(),
         })
     }
 }
