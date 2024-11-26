@@ -19,7 +19,9 @@ macro_rules! receive {
         {
             let mut multi_receiver = $crate::ports::MultiReceiver::new();
             $(
-                multi_receiver.recv(&$port);
+                if !$port.is_lazy() {
+                    multi_receiver.recv(&$port);
+                }
             )*
 
             // TODO: This is really ugly. The counter could probably be removed by turning this into a recursive macro.
@@ -29,14 +31,22 @@ macro_rules! receive {
                 let mut counter = 0;
 
                 $(
-                    if index == counter {
-                        let $msg = $port.recv_select(oper).unwrap();
-                        break $output;
+                    if $port.is_lazy() {
+                        if let Ok($msg) = $port.try_recv_last() {
+                           $output;
+                        }
                     }
-                    counter += 1;
                 )*
-
-                unreachable!();
+                $(
+                    if !$port.is_lazy() {
+                        if index == counter {
+                            let $msg = $port.recv_select(oper).unwrap();
+                            $output;
+                            break;
+                        }
+                        counter += 1;
+                    }
+                )*
             }
         }
     };
@@ -71,12 +81,25 @@ impl Default for MultiReceiver<'_> {
 pub struct NodeRunnerInputPort<T> {
     tx: Sender<T>,
     rx: Receiver<T>,
+    is_lazy: bool,
 }
 
 impl<T> NodeRunnerInputPort<T> {
     pub fn new() -> Self {
         let (tx, rx) = crossbeam_channel::unbounded::<T>();
-        Self { tx, rx }
+        Self {
+            tx,
+            rx,
+            is_lazy: false,
+        }
+    }
+
+    pub fn try_recv_last(&self) -> Result<T, TryRecvError> {
+        let mut last = None;
+        while let Ok(value) = self.try_recv() {
+            last = Some(value);
+        }
+        last.ok_or(TryRecvError::Empty)
     }
 
     pub fn try_recv(&self) -> Result<T, TryRecvError> {
@@ -89,6 +112,10 @@ impl<T> NodeRunnerInputPort<T> {
 
     pub fn recv_select(&self, select: SelectedOperation) -> Result<T, RecvError> {
         select.recv(&self.rx)
+    }
+
+    pub fn is_lazy(&self) -> bool {
+        self.is_lazy
     }
 }
 
@@ -127,6 +154,10 @@ impl<T> NodeConfigInputPort<T> {
             .tx
             .send(value)
             .unwrap();
+    }
+
+    pub fn set_lazy(&self, is_lazy: bool) {
+        self.0.write().expect("poisoned lock").is_lazy = is_lazy;
     }
 }
 
