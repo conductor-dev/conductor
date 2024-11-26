@@ -19,7 +19,7 @@ macro_rules! receive {
         {
             let mut multi_receiver = $crate::ports::MultiReceiver::new();
             $(
-                if !$port.is_lazy() {
+                if let $crate::ports::PortKind::Eager = $port.kind() {
                     multi_receiver.recv(&$port);
                 }
             )*
@@ -31,14 +31,19 @@ macro_rules! receive {
                 let mut counter = 0;
 
                 $(
-                    if $port.is_lazy() {
+                    if let $crate::ports::PortKind::LazyDrop = $port.kind() {
                         if let Ok($msg) = $port.try_recv_last() {
+                           $output;
+                        }
+                    }
+                    if let $crate::ports::PortKind::LazyBuffer = $port.kind() {
+                        if let Ok($msg) = $port.try_recv() {
                            $output;
                         }
                     }
                 )*
                 $(
-                    if !$port.is_lazy() {
+                    if let $crate::ports::PortKind::Eager = $port.kind() {
                         if index == counter {
                             let $msg = $port.recv_select(oper).unwrap();
                             $output;
@@ -78,10 +83,17 @@ impl Default for MultiReceiver<'_> {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum PortKind {
+    Eager,
+    LazyDrop,
+    LazyBuffer,
+}
+
 pub struct NodeRunnerInputPort<T> {
     tx: Sender<T>,
     rx: Receiver<T>,
-    is_lazy: bool,
+    kind: PortKind,
 }
 
 impl<T> NodeRunnerInputPort<T> {
@@ -90,7 +102,7 @@ impl<T> NodeRunnerInputPort<T> {
         Self {
             tx,
             rx,
-            is_lazy: false,
+            kind: PortKind::Eager,
         }
     }
 
@@ -114,8 +126,8 @@ impl<T> NodeRunnerInputPort<T> {
         select.recv(&self.rx)
     }
 
-    pub fn is_lazy(&self) -> bool {
-        self.is_lazy
+    pub fn kind(&self) -> PortKind {
+        self.kind
     }
 }
 
@@ -156,8 +168,8 @@ impl<T> NodeConfigInputPort<T> {
             .unwrap();
     }
 
-    pub fn set_lazy(&self, is_lazy: bool) {
-        self.0.write().expect("poisoned lock").is_lazy = is_lazy;
+    pub fn set_kind(&self, kind: PortKind) {
+        self.0.write().expect("poisoned lock").kind = kind;
     }
 }
 

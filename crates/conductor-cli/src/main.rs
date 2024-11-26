@@ -2,7 +2,7 @@ use conductor::prelude::*;
 
 fn main() {
     let sample_generator = SampleGenerator::<i32>::new(0);
-    sample_generator.sample_rate.set_initial(4400);
+    sample_generator.sample_rate.set_initial(4400000);
     sample_generator.step.set_initial(1);
 
     let less_than_equal = LessThanEqual::new();
@@ -11,11 +11,13 @@ fn main() {
     let synchronize_gate = Synchronize::new();
 
     let gate = Gate::new();
-    gate.condition.set_lazy(true);
+    gate.condition.set_kind(PortKind::LazyBuffer);
 
-    let addition = Adder::<i32, i32, i32>::new();
-    addition.input2.set_initial(0);
-    addition.input2.set_lazy(true);
+    let synchronize_addition = Synchronize::new();
+    synchronize_addition.input1.set_initial(0);
+
+    let addition = Adder::new();
+    addition.input1.set_kind(PortKind::LazyBuffer);
 
     let console = ConsolePrinter::new();
 
@@ -27,9 +29,12 @@ fn main() {
     synchronize_gate.output1.connect(&gate.condition);
     synchronize_gate.output2.connect(&gate.input);
 
-    gate.output.connect(&addition.input1);
+    gate.output.connect(&synchronize_addition.input2);
 
-    addition.output.connect(&addition.input2);
+    synchronize_addition.output1.connect(&addition.input1);
+    synchronize_addition.output2.connect(&addition.input2);
+
+    addition.output.connect(&synchronize_addition.input1);
     addition.output.connect(&console.input);
 
     pipeline![
@@ -37,6 +42,7 @@ fn main() {
         less_than_equal,
         synchronize_gate,
         gate,
+        synchronize_addition,
         addition,
         console
     ]
