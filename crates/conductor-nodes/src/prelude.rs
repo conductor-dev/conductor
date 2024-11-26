@@ -28,5 +28,6 @@ pub use crate::{
         pass::Pass,
         resampler::Resampler,
         sample_generator::{Sample, SampleGenerator},
+        synchronize::Synchronize,
     },
 };
