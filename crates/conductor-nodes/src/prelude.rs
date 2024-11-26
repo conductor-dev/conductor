@@ -1,5 +1,9 @@
 pub use crate::{
     audio::{player::AudioPlayer, recorder::AudioRecorder},
+    control::{
+        comparison::{Equal, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, NotEqual},
+        multiplexing::Gate,
+    },
     io::{
         file::{FileReader, FileWriter},
         print::ConsolePrinter,
@@ -17,12 +21,7 @@ pub use crate::{
         trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
     },
     misc::{
-        buffer::Buffer,
-        downsampler::Downsampler,
-        into::Intoer,
-        lambda::Lambdaer,
-        pass::Pass,
-        resampler::Resampler,
-        sample_generator::{Sample, SampleGenerator},
+        buffer::Buffer, downsampler::Downsampler, into::Intoer, lambda::Lambdaer, pass::Pass,
+        resampler::Resampler, sample_generator::SampleGenerator, synchronize::Synchronize,
     },
 };
