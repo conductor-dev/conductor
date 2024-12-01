@@ -63,4 +63,4 @@ where
     }
 }
 
-implement_unary_trait_operation!(Normer, NormerRunner, Norm, norm);
+implement_unary_trait_operation!(NormNode, NormRunner, Norm, norm);

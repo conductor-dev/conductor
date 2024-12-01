@@ -12,16 +12,16 @@ pub use crate::{
     },
     math::{
         arihtmetic::{
-            Adder, BitwiseAnder, BitwiseOrer, BitwiseXorer, Divider, LeftShiter, Multiplier,
-            Negator, Noter, Remainder, RightShifter, Subtractor,
+            AddNode, BitwiseAnd, BitwiseOr, BitwiseXor, Divide, Invert, LeftShift, Multiply,
+            Negate, Remainder, RightShift, Subtract,
         },
         fft::{window::Window, window::WindowType, InverseFFT, FFT},
         immediate::Immediate,
-        norm::{Norm, Normer},
-        trigonometry::{Cos, Cosiner, Sin, Siner, Tan, Taner},
+        norm::{Norm, NormNode},
+        trigonometry::{Cos, Cosine, Sin, Sine, Tan, Tangent},
     },
     misc::{
-        buffer::Buffer, downsampler::Downsampler, into::Intoer, lambda::Lambdaer, pass::Pass,
-        resampler::Resampler, sample_generator::SampleGenerator, synchronize::Synchronize,
+        buffer::Buffer, downsampler::Downsample, into::IntoNode, lambda::Lambda, pass::Pass,
+        resampler::Resample, sample_generator::SampleGenerator, synchronize::Synchronize,
     },
 };

@@ -3,14 +3,14 @@ use conductor_core::{
     NodeConfig, NodeRunner,
 };
 
-struct ResamplerRunner {
+struct ResampleRunner {
     input: NodeRunnerInputPort<f32>,
     output: NodeRunnerOutputPort<f32>,
     input_sample_rate: NodeRunnerInputPort<usize>,
     output_sample_rate: NodeRunnerInputPort<usize>,
 }
 
-impl NodeRunner for ResamplerRunner {
+impl NodeRunner for ResampleRunner {
     fn run(self: Box<Self>) {
         // TODO: support dynamically changing sample rates
         let input_sample_rate = self.input_sample_rate.recv().unwrap();
@@ -49,14 +49,14 @@ impl NodeRunner for ResamplerRunner {
     }
 }
 
-pub struct Resampler {
+pub struct Resample {
     pub input: NodeConfigInputPort<f32>,
     pub output: NodeConfigOutputPort<f32>,
     pub input_sample_rate: NodeConfigInputPort<usize>,
     pub output_sample_rate: NodeConfigInputPort<usize>,
 }
 
-impl Resampler {
+impl Resample {
     pub fn new() -> Self {
         Self {
             input: NodeConfigInputPort::new(),
@@ -67,16 +67,16 @@ impl Resampler {
     }
 }
 
-impl Default for Resampler {
+impl Default for Resample {
     fn default() -> Self {
         Self::new()
     }
 }
 
 // TODO: Can + Send + 'static be removed?
-impl NodeConfig for Resampler {
+impl NodeConfig for Resample {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
-        Box::new(ResamplerRunner {
+        Box::new(ResampleRunner {
             input: self.input.into(),
             output: self.output.into(),
             input_sample_rate: self.input_sample_rate.into(),

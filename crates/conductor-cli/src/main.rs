@@ -16,7 +16,7 @@ fn main() {
     let synchronize_addition = Synchronize::new();
     synchronize_addition.input1.set_initial(0);
 
-    let addition = Adder::new();
+    let addition = AddNode::new();
     addition.input1.set_kind(PortKind::LazyBuffer);
 
     let console = ConsolePrinter::new();

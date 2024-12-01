@@ -101,16 +101,16 @@ macro_rules! implement_binary_arithmetic_operation {
     };
 }
 
-implement_unary_trait_operation!(Negator, NegatorRunner, Neg, neg);
-implement_unary_trait_operation!(Noter, NoterRunner, Not, not);
+implement_unary_trait_operation!(Negate, NegateRunner, Neg, neg);
+implement_unary_trait_operation!(Invert, InvertNotRunner, Not, not);
 
-implement_binary_arithmetic_operation!(Adder, AdderRunner, Add, add);
-implement_binary_arithmetic_operation!(BitwiseAnder, BitwiseAnderRunner, BitAnd, bitand);
-implement_binary_arithmetic_operation!(BitwiseOrer, BitwiseOrerRunner, BitOr, bitor);
-implement_binary_arithmetic_operation!(BitwiseXorer, BitwiseXorerRunner, BitXor, bitxor);
-implement_binary_arithmetic_operation!(Divider, DividerRunner, Div, div);
-implement_binary_arithmetic_operation!(Multiplier, MultiplierRunner, Mul, mul);
+implement_binary_arithmetic_operation!(AddNode, AdderRunner, Add, add);
+implement_binary_arithmetic_operation!(BitwiseAnd, BitwiseAnderRunner, BitAnd, bitand);
+implement_binary_arithmetic_operation!(BitwiseOr, BitwiseOrerRunner, BitOr, bitor);
+implement_binary_arithmetic_operation!(BitwiseXor, BitwiseXorerRunner, BitXor, bitxor);
+implement_binary_arithmetic_operation!(Divide, DividerRunner, Div, div);
+implement_binary_arithmetic_operation!(Multiply, MultiplierRunner, Mul, mul);
 implement_binary_arithmetic_operation!(Remainder, RemainderRunner, Rem, rem);
-implement_binary_arithmetic_operation!(LeftShiter, LeftShiterRunner, Shl, shl);
-implement_binary_arithmetic_operation!(RightShifter, RightShifterRunner, Shr, shr);
-implement_binary_arithmetic_operation!(Subtractor, SubtractorRunner, Sub, sub);
+implement_binary_arithmetic_operation!(LeftShift, LeftShiterRunner, Shl, shl);
+implement_binary_arithmetic_operation!(RightShift, RightShifterRunner, Shr, shr);
+implement_binary_arithmetic_operation!(Subtract, SubtractorRunner, Sub, sub);

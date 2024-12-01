@@ -70,6 +70,6 @@ impl Tan for f32 {
     }
 }
 
-implement_unary_trait_operation!(Siner, SinRunner, Sin, sin);
-implement_unary_trait_operation!(Cosiner, CosinerRunner, Cos, cos);
-implement_unary_trait_operation!(Taner, TanerRunner, Tan, tan);
+implement_unary_trait_operation!(Sine, SineRunner, Sin, sin);
+implement_unary_trait_operation!(Cosine, CosineRunner, Cos, cos);
+implement_unary_trait_operation!(Tangent, TangentRunner, Tan, tan);

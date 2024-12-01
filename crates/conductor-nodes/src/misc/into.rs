@@ -3,12 +3,12 @@ use conductor_core::{
     NodeConfig, NodeRunner,
 };
 
-struct IntoerRunner<I, O: From<I> + Clone> {
+struct IntoRunner<I, O: From<I> + Clone> {
     input: NodeRunnerInputPort<I>,
     output: NodeRunnerOutputPort<O>,
 }
 
-impl<I, O: From<I> + Clone> NodeRunner for IntoerRunner<I, O> {
+impl<I, O: From<I> + Clone> NodeRunner for IntoRunner<I, O> {
     fn run(self: Box<Self>) {
         loop {
             let value = self.input.recv().unwrap();
@@ -17,12 +17,12 @@ impl<I, O: From<I> + Clone> NodeRunner for IntoerRunner<I, O> {
     }
 }
 
-pub struct Intoer<I, O: From<I> + Clone> {
+pub struct IntoNode<I, O: From<I> + Clone> {
     pub input: NodeConfigInputPort<I>,
     pub output: NodeConfigOutputPort<O>,
 }
 
-impl<I, O: From<I> + Clone> Intoer<I, O> {
+impl<I, O: From<I> + Clone> IntoNode<I, O> {
     pub fn new() -> Self {
         Self {
             input: NodeConfigInputPort::new(),
@@ -31,16 +31,16 @@ impl<I, O: From<I> + Clone> Intoer<I, O> {
     }
 }
 
-impl<I, O: From<I> + Clone> Default for Intoer<I, O> {
+impl<I, O: From<I> + Clone> Default for IntoNode<I, O> {
     fn default() -> Self {
         Self::new()
     }
 }
 
 // TODO: Can + Send + 'static be removed?
-impl<I: Send + 'static, O: From<I> + Clone + Send + 'static> NodeConfig for Intoer<I, O> {
+impl<I: Send + 'static, O: From<I> + Clone + Send + 'static> NodeConfig for IntoNode<I, O> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
-        Box::new(IntoerRunner {
+        Box::new(IntoRunner {
             input: self.input.into(),
             output: self.output.into(),
         })

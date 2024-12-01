@@ -3,14 +3,14 @@ use conductor_core::{
     receive, NodeConfig, NodeRunner,
 };
 
-struct DownsamplerRunner<T: Clone> {
+struct DownsampleRunner<T: Clone> {
     input: NodeRunnerInputPort<T>,
     factor: NodeRunnerInputPort<usize>,
 
     output: NodeRunnerOutputPort<T>,
 }
 
-impl<T: Clone> NodeRunner for DownsamplerRunner<T> {
+impl<T: Clone> NodeRunner for DownsampleRunner<T> {
     fn run(self: Box<Self>) {
         let mut counter: usize = 0;
 
@@ -35,14 +35,14 @@ impl<T: Clone> NodeRunner for DownsamplerRunner<T> {
     }
 }
 
-pub struct Downsampler<T: Clone> {
+pub struct Downsample<T: Clone> {
     pub input: NodeConfigInputPort<T>,
     pub factor: NodeConfigInputPort<usize>,
 
     pub output: NodeConfigOutputPort<T>,
 }
 
-impl<T: Clone> Downsampler<T> {
+impl<T: Clone> Downsample<T> {
     pub fn new() -> Self {
         Self {
             input: NodeConfigInputPort::new(),
@@ -52,16 +52,16 @@ impl<T: Clone> Downsampler<T> {
     }
 }
 
-impl<T: Clone> Default for Downsampler<T> {
+impl<T: Clone> Default for Downsample<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
 // TODO: Can + Send + 'static be removed?
-impl<T: Clone + Send + 'static> NodeConfig for Downsampler<T> {
+impl<T: Clone + Send + 'static> NodeConfig for Downsample<T> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
-        Box::new(DownsamplerRunner {
+        Box::new(DownsampleRunner {
             input: self.input.into(),
             factor: self.factor.into(),
             output: self.output.into(),
