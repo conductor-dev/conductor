@@ -39,7 +39,7 @@ struct UdpSenderRunner<T: UdpSerializer> {
 impl<T: UdpSerializer> NodeRunner for UdpSenderRunner<T> {
     fn run(self: Box<Self>) {
         loop {
-            let data = self.input.recv().unwrap();
+            let data = self.input.recv();
 
             let buffer = data.serialize_packet();
 
@@ -63,7 +63,7 @@ impl<'a, T: Clone + UdpDeserializer> UdpReceiver<'a, T> {
 }
 
 // TODO: Can + Send + 'static be removed?
-impl<'a, T: Clone + UdpDeserializer + Send + 'static> NodeConfig for UdpReceiver<'a, T> {
+impl<T: Clone + UdpDeserializer + Send + 'static> NodeConfig for UdpReceiver<'_, T> {
     fn into_runner(self: Box<Self>) -> Box<dyn NodeRunner + Send> {
         let socket = UdpSocket::bind(self.bind_addr).unwrap();
 

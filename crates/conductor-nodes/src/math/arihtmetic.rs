@@ -25,8 +25,8 @@ macro_rules! implement_binary_arithmetic_operation {
             O: Clone,
         {
             fn run(self: Box<Self>) {
-                let mut input1_cache = self.input1.recv().unwrap();
-                let mut input2_cache = self.input2.recv().unwrap();
+                let mut input1_cache = self.input1.recv();
+                let mut input2_cache = self.input2.recv();
 
                 self.output
                     .send(&(input1_cache.clone().$function(input2_cache.clone())));

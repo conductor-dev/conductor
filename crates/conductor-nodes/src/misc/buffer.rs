@@ -15,7 +15,7 @@ struct BufferRunner<T: Clone, S: Into<usize>> {
 
 impl<T: Clone, S: Into<usize>> NodeRunner for BufferRunner<T, S> {
     fn run(self: Box<Self>) {
-        let size = self.size.recv().unwrap();
+        let size = self.size.recv();
 
         let mut buffer = CircularBuffer::new(size.into());
 

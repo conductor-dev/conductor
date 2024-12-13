@@ -17,7 +17,7 @@ impl NodeRunner for PipelineRunner {
         }
 
         for handle in handles {
-            handle.join().unwrap();
+            let _ = handle.join();
         }
     }
 }

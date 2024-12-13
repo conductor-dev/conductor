@@ -23,7 +23,7 @@ macro_rules! implement_unary_trait_operation {
         {
             fn run(self: Box<Self>) {
                 loop {
-                    let input = self.input.recv().unwrap();
+                    let input = self.input.recv();
 
                     self.output.send(&input.$function());
                 }

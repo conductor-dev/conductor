@@ -15,8 +15,8 @@ struct SampleGeneratorRunner<O: Clone + Add<O, Output = O>> {
 
 impl<O: Clone + Add<O, Output = O>> NodeRunner for SampleGeneratorRunner<O> {
     fn run(self: Box<Self>) {
-        let sample_rate = self.sample_rate.recv().unwrap();
-        let step = self.step.recv().unwrap();
+        let sample_rate = self.sample_rate.recv();
+        let step = self.step.recv();
 
         let mut current_value = self.initial_value;
         let seconds_per_sample = Duration::from_secs_f64(1.0 / (sample_rate as f64));

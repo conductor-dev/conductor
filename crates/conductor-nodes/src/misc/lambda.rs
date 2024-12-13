@@ -12,7 +12,7 @@ struct LambdaRunner<I, O: Clone> {
 impl<T, O: Clone> NodeRunner for LambdaRunner<T, O> {
     fn run(self: Box<Self>) {
         loop {
-            let input = self.input.recv().unwrap();
+            let input = self.input.recv();
 
             let output = (self.function)(input);
 
