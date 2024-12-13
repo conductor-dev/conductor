@@ -1,6 +1,5 @@
 [workspace]
 members = ["crates/*"]
-default-members = ["crates/conductor-cli"]
 resolver = "2"
 
 [workspace.package]
@@ -12,5 +11,3 @@ readme = "README.md"
 conductor = { path = "crates/conductor", version = "0.1.0" }
 conductor-core = { path = "crates/conductor-core", version = "0.1.0" }
 conductor-nodes = { path = "crates/conductor-nodes", version = "0.1.0" }
-conductor-macros = { path = "crates/conductor-macros", version = "0.1.0" }
-conductor-cli = { path = "crates/conductor-cli", version = "0.1.0" }

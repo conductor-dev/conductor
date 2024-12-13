@@ -6,6 +6,5 @@ readme = { workspace = true }
 
 [dependencies]
 conductor-core = { workspace = true }
-conductor-macros = { workspace = true }
 rustfft = "6.2.0"
 cpal = "0.15.3"

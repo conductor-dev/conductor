@@ -3,7 +3,6 @@ use conductor_core::{
     ports::{NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort},
     NodeConfig, NodeRunner,
 };
-pub use conductor_macros::Norm;
 
 pub trait Norm {
     type Output;
