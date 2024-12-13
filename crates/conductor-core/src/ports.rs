@@ -1,5 +1,5 @@
 pub use crate::receive;
-use crossbeam_channel::{Receiver, RecvError, Select, SelectedOperation, Sender, TryRecvError};
+use crossbeam_channel::{Receiver, Select, SelectedOperation, Sender, TryRecvError};
 use std::sync::{Arc, RwLock};
 
 /// ```ignore
@@ -45,7 +45,7 @@ macro_rules! receive {
                 $(
                     if let $crate::ports::PortKind::Eager = $port.kind() {
                         if index == counter {
-                            let $msg = $port.recv_select(oper).unwrap();
+                            let $msg = $port.recv_select(oper);
                             $output;
                             break;
                         }
@@ -118,12 +118,25 @@ impl<T> NodeRunnerInputPort<T> {
         self.rx.try_recv()
     }
 
-    pub fn recv(&self) -> Result<T, RecvError> {
-        self.rx.recv()
+    pub fn recv(&self) -> T {
+        if let Ok(message) = self.rx.recv() {
+            message
+        } else {
+            eprintln!("ERROR: Tried to receive from disconnected port. Node may have panicked.");
+            loop {
+                std::thread::park();
+            }
+        }
     }
 
-    pub fn recv_select(&self, select: SelectedOperation) -> Result<T, RecvError> {
-        select.recv(&self.rx)
+    pub fn recv_select(&self, select: SelectedOperation) -> T {
+        if let Ok(message) = select.recv(&self.rx) {
+            message
+        } else {
+            loop {
+                std::thread::park();
+            }
+        }
     }
 
     pub fn kind(&self) -> PortKind {
@@ -190,7 +203,9 @@ impl<T: Clone> NodeRunnerOutputPort<T> {
 
     pub fn send(&self, value: &T) {
         for tx in &self.tx {
-            tx.send(value.clone()).unwrap();
+            if tx.send(value.clone()).is_err() {
+                eprintln!("ERROR: Tried to send to disconnected port. Node may have panicked.");
+            }
         }
     }
 }

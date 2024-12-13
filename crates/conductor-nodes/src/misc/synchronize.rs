@@ -14,8 +14,8 @@ struct SynchronizeRunner<T1: Clone, T2: Clone> {
 impl<T1: Clone, T2: Clone> NodeRunner for SynchronizeRunner<T1, T2> {
     fn run(self: Box<Self>) {
         loop {
-            let value1 = self.input1.recv().unwrap();
-            let value2 = self.input2.recv().unwrap();
+            let value1 = self.input1.recv();
+            let value2 = self.input2.recv();
 
             self.output1.send(&value1);
             self.output2.send(&value2);

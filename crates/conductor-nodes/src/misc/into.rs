@@ -11,7 +11,7 @@ struct IntoRunner<I, O: From<I> + Clone> {
 impl<I, O: From<I> + Clone> NodeRunner for IntoRunner<I, O> {
     fn run(self: Box<Self>) {
         loop {
-            let value = self.input.recv().unwrap();
+            let value = self.input.recv();
             self.output.send(&value.into());
         }
     }

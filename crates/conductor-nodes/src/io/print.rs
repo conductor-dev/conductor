@@ -11,7 +11,7 @@ struct ConsolePrinterRunner<T: Display> {
 impl<T: Display> NodeRunner for ConsolePrinterRunner<T> {
     fn run(self: Box<Self>) {
         loop {
-            println!("{}", self.input.recv().unwrap());
+            println!("{}", self.input.recv());
         }
     }
 }

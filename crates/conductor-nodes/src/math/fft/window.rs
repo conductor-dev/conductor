@@ -36,7 +36,7 @@ impl<T: Into<f32>> NodeRunner for WindowRunner<T> {
         };
 
         loop {
-            let values = self.input.recv().unwrap();
+            let values = self.input.recv();
 
             let windowed_values = cosine_sum_window(values, alpha_zero);
 

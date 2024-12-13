@@ -14,7 +14,7 @@ impl<T: Clone> NodeRunner for DownsampleRunner<T> {
     fn run(self: Box<Self>) {
         let mut counter: usize = 0;
 
-        let mut factor = self.factor.recv().unwrap();
+        let mut factor = self.factor.recv();
 
         loop {
             receive! {

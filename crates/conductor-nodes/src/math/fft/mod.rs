@@ -38,7 +38,7 @@ impl<T: Into<f32>> NodeRunner for FFTRunner<T> {
 
         let mut planner = FftPlanner::new();
 
-        let mut buffer = self.input.recv().unwrap();
+        let mut buffer = self.input.recv();
         let mut scratch = vec![Complex::default(); buffer.len()];
 
         let mut fft = planner.plan_fft_forward(buffer.len());
@@ -48,7 +48,7 @@ impl<T: Into<f32>> NodeRunner for FFTRunner<T> {
 
             self.output.send(&fft_output);
 
-            buffer = self.input.recv().unwrap();
+            buffer = self.input.recv();
 
             if fft.len() != buffer.len() {
                 fft = planner.plan_fft_forward(buffer.len());
@@ -97,7 +97,7 @@ impl NodeRunner for InverseFFTRunner {
     fn run(self: Box<Self>) {
         let mut planner = FftPlanner::new();
 
-        let mut fft_input = self.input.recv().unwrap();
+        let mut fft_input = self.input.recv();
         let mut scratch = vec![Complex::default(); fft_input.len()];
 
         let mut fft = planner.plan_fft_inverse(fft_input.len());
@@ -109,7 +109,7 @@ impl NodeRunner for InverseFFTRunner {
 
             self.output.send(&fft_output);
 
-            fft_input = self.input.recv().unwrap();
+            fft_input = self.input.recv();
 
             if fft.len() != fft_input.len() {
                 fft = planner.plan_fft_inverse(fft_input.len());

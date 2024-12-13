@@ -29,7 +29,7 @@ impl NodeRunner for AudioPlayerRunner {
                     let chunks = data.chunks_mut(config.channels as usize);
 
                     for chunk in chunks {
-                        let input = self.input.recv().unwrap();
+                        let input = self.input.recv();
 
                         for sample in chunk {
                             *sample = input;

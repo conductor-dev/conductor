@@ -65,7 +65,7 @@ impl<T: Display> NodeRunner for FileWriterRunner<T> {
             .unwrap();
 
         loop {
-            writeln!(file, "{}", self.input.recv().unwrap()).unwrap();
+            writeln!(file, "{}", self.input.recv()).unwrap();
         }
     }
 }

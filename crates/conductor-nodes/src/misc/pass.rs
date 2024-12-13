@@ -11,7 +11,7 @@ struct PassRunner<T: Clone> {
 impl<T: Clone> NodeRunner for PassRunner<T> {
     fn run(self: Box<Self>) {
         loop {
-            let value = self.input.recv().unwrap();
+            let value = self.input.recv();
             self.output.send(&value);
         }
     }

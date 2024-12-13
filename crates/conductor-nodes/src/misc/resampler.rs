@@ -13,8 +13,8 @@ struct ResampleRunner {
 impl NodeRunner for ResampleRunner {
     fn run(self: Box<Self>) {
         // TODO: support dynamically changing sample rates
-        let input_sample_rate = self.input_sample_rate.recv().unwrap();
-        let output_sample_rate = self.output_sample_rate.recv().unwrap();
+        let input_sample_rate = self.input_sample_rate.recv();
+        let output_sample_rate = self.output_sample_rate.recv();
 
         let mut buffer = Vec::new();
         let mut position = 0.0;
@@ -25,7 +25,7 @@ impl NodeRunner for ResampleRunner {
         }
 
         loop {
-            let sample = self.input.recv().unwrap();
+            let sample = self.input.recv();
             buffer.push(sample);
 
             while position + factor.max(1.0) < buffer.len() as f32 {

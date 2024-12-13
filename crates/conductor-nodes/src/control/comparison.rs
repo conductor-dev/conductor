@@ -19,8 +19,8 @@ macro_rules! implement_comparison_operation {
             I1: $trait<I2>,
         {
             fn run(self: Box<Self>) {
-                let mut input1 = self.input1.recv().unwrap();
-                let mut input2 = self.input2.recv().unwrap();
+                let mut input1 = self.input1.recv();
+                let mut input2 = self.input2.recv();
 
                 loop {
                     let condition = input1.$function(&input2);
