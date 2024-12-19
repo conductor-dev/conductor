@@ -3,7 +3,7 @@ pub use crate::{
     pipeline,
     ports::{
         NodeConfigInputPort, NodeConfigOutputPort, NodeRunnerInputPort, NodeRunnerOutputPort,
-        PortKind,
+        PortMode,
     },
     receive,
     timer::set_interval,

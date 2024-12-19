@@ -19,7 +19,7 @@ macro_rules! receive {
         {
             let mut multi_receiver = $crate::ports::MultiReceiver::new();
             $(
-                if let $crate::ports::PortKind::Eager = $port.kind() {
+                if let $crate::ports::PortMode::Eager = $port.mode() {
                     multi_receiver.recv(&$port);
                 }
             )*
@@ -31,19 +31,19 @@ macro_rules! receive {
                 let mut counter = 0;
 
                 $(
-                    if let $crate::ports::PortKind::LazyDrop = $port.kind() {
+                    if let $crate::ports::PortMode::LazyDrop = $port.mode() {
                         if let Ok($msg) = $port.try_recv_last() {
                            $output;
                         }
                     }
-                    if let $crate::ports::PortKind::LazyBuffer = $port.kind() {
+                    if let $crate::ports::PortMode::LazyBuffer = $port.mode() {
                         if let Ok($msg) = $port.try_recv() {
                            $output;
                         }
                     }
                 )*
                 $(
-                    if let $crate::ports::PortKind::Eager = $port.kind() {
+                    if let $crate::ports::PortMode::Eager = $port.mode() {
                         if index == counter {
                             let $msg = $port.recv_select(oper);
                             $output;
@@ -84,7 +84,7 @@ impl Default for MultiReceiver<'_> {
 }
 
 #[derive(Clone, Copy)]
-pub enum PortKind {
+pub enum PortMode {
     Eager,
     LazyDrop,
     LazyBuffer,
@@ -93,7 +93,7 @@ pub enum PortKind {
 pub struct NodeRunnerInputPort<T> {
     tx: Sender<T>,
     rx: Receiver<T>,
-    kind: PortKind,
+    mode: PortMode,
 }
 
 impl<T> NodeRunnerInputPort<T> {
@@ -102,7 +102,7 @@ impl<T> NodeRunnerInputPort<T> {
         Self {
             tx,
             rx,
-            kind: PortKind::Eager,
+            mode: PortMode::Eager,
         }
     }
 
@@ -139,8 +139,8 @@ impl<T> NodeRunnerInputPort<T> {
         }
     }
 
-    pub fn kind(&self) -> PortKind {
-        self.kind
+    pub fn mode(&self) -> PortMode {
+        self.mode
     }
 }
 
@@ -181,8 +181,8 @@ impl<T> NodeConfigInputPort<T> {
             .unwrap();
     }
 
-    pub fn set_kind(&self, kind: PortKind) {
-        self.0.write().expect("poisoned lock").kind = kind;
+    pub fn set_mode(&self, mode: PortMode) {
+        self.0.write().expect("poisoned lock").mode = mode;
     }
 }
 
