@@ -1,7 +1,4 @@
-.PHONY = run build clean format lint test
-
-run:
-	cargo run
+.PHONY = build clean format lint test
 
 build:
 	cargo build
